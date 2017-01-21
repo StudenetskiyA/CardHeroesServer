@@ -1,9 +1,6 @@
 package com.company;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -25,11 +22,11 @@ public class Main {
                 Game.Player playerO = game.new Player(listener.accept());
                 playerX.start();
                 playerO.start();
-                Game game2 = new Game();
-                Game.Player playerX2 = game2.new Player(listener.accept());
-                Game.Player playerO2 = game2.new Player(listener.accept());
-                playerX2.start();
-                playerO2.start();
+              //  Game game2 = new Game();
+               // Game.Player playerX2 = game2.new Player(listener.accept());
+               // Game.Player playerO2 = game2.new Player(listener.accept());
+              //  playerX2.start();
+              //  playerO2.start();
             }
         } finally {
             listener.close();
@@ -40,8 +37,9 @@ public class Main {
 class Game {
     private static ArrayList<PrintWriter> writers = new ArrayList<>();
     private static ArrayList<String> players = new ArrayList<>();
-    private static int mulliganEnds = 0;
+    private static String mulliganEnds = "";
     private static int playerConnected=0;
+    int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
 
     class Player extends Thread {
         String name;
@@ -56,12 +54,13 @@ class Game {
         public Player(Socket socket) {
             this.socket = socket;
             try {
-                input = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                output = new PrintWriter(socket.getOutputStream(), true);
-                writers.add(output);
+                input = new BufferedReader(new InputStreamReader(socket.getInputStream(),"windows-1251"));
+                output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "windows-1251"), true);
+
                 while (true) {
                     String command = input.readLine();
                     System.out.println(command);
+                    //TODO BUG! I player connected and before got pair disconnected, next player think will play with it.
                     if (command.contains("$IAM")) {
                         ArrayList<String> parameter = Card.getTextBetween(command);
                         String ver=parameter.get(2);
@@ -69,20 +68,22 @@ class Game {
                             name = parameter.get(0);
                             playerConnected++;
                             System.out.println(name + " connected.");
+                            writers.add(output);
                             players.add(name);
                             deckName = parameter.get(1);
                             deckList = getDeckList();
-                            System.out.print(deckList.toString());
+                           // System.out.print(deckList.toString());
                             output.println("Hello, " + name + ", you going to play " + deckName + " deck.");
                             output.println("Waiting for opponent to connect");
                             //Const for shuffle
-                            int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
                             output.println("$YOUAREOK("+randomNum+")");
+                           // start();
                             break;
                         }
                         else {
                             output.println("Your client version is depricated! Update it.");
                             output.println("$YOUARENOTOK("+"Your client version is depricated! Update it."+")");
+                            break;
                         }
                     }
                 }
@@ -96,6 +97,7 @@ class Game {
             ArrayList<String> result= new ArrayList<>();
             String card;
             while (!(card = input.readLine()).equals("$ENDDECK")){
+               // System.out.println("Card get "+card);
                 result.add(card);
             }
            return result;
@@ -106,7 +108,7 @@ class Game {
         public void run() {
             try {
                 // The thread is only started after pair connects.
-
+                System.out.println("run called, playerConnected = "+playerConnected);
                 //Get shuffled deck and send to client?
                 for (int i=playerConnected-2;i<writers.size();i++){
                     if (writers.get(i) != output) {
@@ -129,25 +131,43 @@ class Game {
 
                     //System.out.println("2"+ name+"/"+command);
                     //System.out.println("2" + opponentName+"/"+command);
-
+                    if (command.contains("$DISCONNECT")) {
+                        System.out.println(name+ " normal disconnected.");
+                        mulliganEnds = "";
+                      //  playerConnected--;
+                      //  writers.remove(output);
+                      //  players.remove(name);
+                      //  System.out.println("playerConnected = "+playerConnected);
+                    }
                     if (command.contains("$MULLIGANEND")) {
-                        mulliganEnds++;
-                        if (mulliganEnds == 2) {
+                        //mulliganEnds++;
+                        ArrayList<String> parameter = Card.getTextBetween(command);
+                        //String ver=parameter.get(2);
+
+                        if (mulliganEnds.equals("")){
+                            mulliganEnds=parameter.get(0);
+                            System.out.println("Mullends write at ("+parameter.get(0));
+                        }
+                        if (mulliganEnds.equals(opponentName)) {
                             //START
-                            mulliganEnds = 0;
+                            mulliganEnds = "";
                             System.out.println(name+"/"+"All mulligan ends.");
                             output.println("$NEWTURN(" + players.get(playerConnected-2) + ")");
                             outputOpponent.println("$NEWTURN(" + players.get(playerConnected-2) + ")");
+                            randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
                         }
                     }
                 }
             } catch (IOException e) {
-                System.out.println("Player died: " + e);
-             //   writers.remove(this.output);
+                System.out.println("Player disconnect: " + name+ " :"+e);
+//                playerConnected--;
+//                writers.remove(output);
+//                players.remove(name);
+              //  writers.remove(this.output);
                 //reset connection for all player?
-                output.println("$DISCONNECT");
-                outputOpponent.println("$DISCONNECT");
-                System.out.println("Opponent disconnect");
+             //   output.println("$DISCONNECT");
+             //   outputOpponent.println("$DISCONNECT");
+            //    System.out.println("Opponent disconnect");
 //                for (PrintWriter writer : writers) {
 //                    System.out.println("Opponent disconnect");
 //                    writer.println("$DISCONNECT");
