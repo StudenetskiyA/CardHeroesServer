@@ -1,32 +1,31 @@
 package com.company;
 
+import javax.xml.bind.DatatypeConverter;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.company.Main.CLIENT_VERSION;
+import static com.company.Main.randomNum;
 
 public class Main {
-    public static final String CLIENT_VERSION="0.01";
-    private static final int PORT=8901;
+    static final String CLIENT_VERSION = "0.01";
+    private static final int PORT = 8901;
+    static int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
+    static ArrayList<String> names = new ArrayList<>();
+    static ArrayList<PrintWriter> writers = new ArrayList<>();
+    static ArrayList<Player> freePlayer = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         ServerSocket listener = new ServerSocket(PORT);
         System.out.println("Server is Running");
         try {
             while (true) {
-                Game game = new Game();
-                Game.Player playerX = game.new Player(listener.accept());
-                Game.Player playerO = game.new Player(listener.accept());
-                playerX.start();
-                playerO.start();
-              //  Game game2 = new Game();
-               // Game.Player playerX2 = game2.new Player(listener.accept());
-               // Game.Player playerO2 = game2.new Player(listener.accept());
-              //  playerX2.start();
-              //  playerO2.start();
+                new Player(listener.accept()).start();
             }
         } finally {
             listener.close();
@@ -34,152 +33,187 @@ public class Main {
     }
 }
 
-class Game {
-    private static ArrayList<PrintWriter> writers = new ArrayList<>();
-    private static ArrayList<String> players = new ArrayList<>();
-    private static String mulliganEnds = "";
-    private static int playerConnected=0;
-    int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
+class Player extends Thread {
+    String name;
+    private Player opponent;
+    private Socket socket;
+    BufferedReader input;
+    PrintWriter output;
+    String deckName;
+    ArrayList<String> deckList;
+    boolean endMuligan = false;
 
-    class Player extends Thread {
-        String name;
-        String opponentName;
-        Socket socket;
-        BufferedReader input;
-        PrintWriter output;
-        PrintWriter outputOpponent;
-        String deckName;
-        ArrayList<String> deckList;
+    boolean isFirstPlayer(String name1, String name2) {
+        byte[] b = (name1 + randomNum).getBytes();
+        byte[] b2 = (name2 + randomNum).getBytes();
+        try {
+            byte[] hash = MessageDigest.getInstance("MD5").digest(b);
+            String a = DatatypeConverter.printHexBinary(hash);
+            byte[] hash2 = MessageDigest.getInstance("MD5").digest(b2);
+            String a2 = DatatypeConverter.printHexBinary(hash2);
+            return a.compareTo(a2) >= 0;
+        } catch (NoSuchAlgorithmException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
 
-        public Player(Socket socket) {
-            this.socket = socket;
+    Player(Socket socket) {
+        this.socket = socket;
+    }
+
+    private ArrayList<String> getDeckList() throws IOException {
+        ArrayList<String> result = new ArrayList<>();
+        String card;
+        while (!(card = input.readLine()).equals("$ENDDECK")) {
+            result.add(card);
+        }
+        return result;
+    }
+
+    public void run() {
+        try {
+            input = new BufferedReader(new InputStreamReader(socket.getInputStream(), "windows-1251"));
+            output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "windows-1251"), true);
+
+            while (true) {
+                String command = input.readLine();
+                if (command.contains("$IAM")) {
+                    ArrayList<String> parameter = getTextBetween(command);
+                    String ver = parameter.get(2);
+                    if (ver.equals(CLIENT_VERSION)) {
+                        name = parameter.get(0);
+                        System.out.println(name + " connected.");
+
+                        boolean nameCorrect=false;
+                        synchronized (Main.names) {
+                            if (!Main.names.contains(name)) {
+                                Main.names.add(name);
+                                nameCorrect=true;
+                            } else {
+                                System.out.println("Name already exist.");
+                                //Other name?
+                            }
+                        }
+                        deckName = parameter.get(1);
+                        deckList = getDeckList();
+                        output.println("Hello, " + name + ", you going to play " + deckName + " deck.");
+                        output.println("Waiting for opponent to connect");
+                        //Const for shuffle
+                        output.println("$YOUAREOK(" + Main.randomNum + ")");
+                        if (nameCorrect) break;
+                    } else {
+                        output.println("Your client version is depricated! Update it.");
+                        output.println("$YOUARENOTOK(" + "Your client version is depricated! Update it." + ")");
+                        //Do something with it!
+                    }
+                }
+            }
+
+            Main.writers.add(output);
+            Main.freePlayer.add(this);
+
+            boolean pairFounded = false;
+
+            // synchronized(freePlayer) {
+            while (true) {
+                //If player disconnected before it take pair
+                if (!input.readLine().equals("wait")){
+                    System.out.println("Player "+name +" disconnected before.");
+                    Main.freePlayer.remove(this);
+                }
+                output.println("wait");
+                //
+                for (int i = 0; i < Main.freePlayer.size(); i++) {
+                    if (!Main.freePlayer.get(i).name.equals(name) && Main.freePlayer.get(i).name != null) {
+                        System.out.println("Pair found: " + name + "/" + Main.freePlayer.get(i).name);
+                        opponent = Main.freePlayer.get(i);
+                        Main.freePlayer.remove(Main.freePlayer.get(i));
+                        pairFounded = true;
+                    }
+                }
+                if (pairFounded) break;
+            }
+
+            //Get shuffled deck and send to opponent
+            opponent.output.println("Your opponent " + name + ", play " + deckName + " deck.");
+            opponent.output.println("$OPPONENTCONNECTED(" + name + "," + deckName + ")");
+            for (String card : deckList) {
+                opponent.output.println(card);
+            }
+            opponent.output.println("$ENDDECK");
+
+            // Repeatedly get commands from the client and process them.
+            while (true) {
+                String command = input.readLine();
+                output.println(command);
+                opponent.output.println(command);
+
+                if (command.contains("$DISCONNECT")) {
+                    System.out.println(name + " normal disconnected.");
+                    opponent.output.println("$DISCONNECT");
+                    // This client is going down!  Remove its name and its print
+                    // writer from the sets, and close its socket.
+                    if (name != null) {
+                        Main.names.remove(name);
+                    }
+                    if (output != null) {
+                        Main.writers.remove(output);
+                    }
+                    try {
+                        socket.close();
+                    } catch (IOException e) {
+                    }
+                    break;
+                }
+                if (command.contains("$MULLIGANEND")) {
+                    endMuligan = true;
+                    if (opponent.endMuligan) {
+                        //START
+                        System.out.println("Game for " + name + " and " + opponent.name + " started.");
+                        //Choice, who first
+                        //Today at random
+                        if (isFirstPlayer(name, opponent.name)) {
+                            output.println("$NEWTURN(" + name + ")");
+                            opponent.output.println("$NEWTURN(" + name + ")");
+                        } else {
+                            output.println("$NEWTURN(" + opponent.name + ")");
+                            opponent.output.println("$NEWTURN(" + opponent.name + ")");
+                        }
+                        Main.randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);//reroll for next
+                    }
+                }
+            }
+
+        } catch (IOException e) {
+            System.out.println("Player disconnected: " + name);
+            //Reconnect?
+        } finally {
+            System.out.println("Finaly " + name);
+           if (opponent!=null) opponent.output.println("$DISCONNECT");
+            // This client is going down!  Remove its name and its print
+            // writer from the sets, and close its socket.
+            if (name != null) {
+                Main.names.remove(name);
+            }
+            if (output != null) {
+                Main.writers.remove(output);
+            }
             try {
-                input = new BufferedReader(new InputStreamReader(socket.getInputStream(),"windows-1251"));
-                output = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), "windows-1251"), true);
-
-                while (true) {
-                    String command = input.readLine();
-                    System.out.println(command);
-                    //TODO BUG! I player connected and before got pair disconnected, next player think will play with it.
-                    if (command.contains("$IAM")) {
-                        ArrayList<String> parameter = Card.getTextBetween(command);
-                        String ver=parameter.get(2);
-                        if (ver.equals(CLIENT_VERSION)) {
-                            name = parameter.get(0);
-                            playerConnected++;
-                            System.out.println(name + " connected.");
-                            writers.add(output);
-                            players.add(name);
-                            deckName = parameter.get(1);
-                            deckList = getDeckList();
-                           // System.out.print(deckList.toString());
-                            output.println("Hello, " + name + ", you going to play " + deckName + " deck.");
-                            output.println("Waiting for opponent to connect");
-                            //Const for shuffle
-                            output.println("$YOUAREOK("+randomNum+")");
-                           // start();
-                            break;
-                        }
-                        else {
-                            output.println("Your client version is depricated! Update it.");
-                            output.println("$YOUARENOTOK("+"Your client version is depricated! Update it."+")");
-                            break;
-                        }
-                    }
-                }
+                socket.close();
             } catch (IOException e) {
-                System.out.println("Player disconnected: "+name);
-                //Reconnect?
             }
         }
 
-        private ArrayList<String> getDeckList() throws IOException {
-            ArrayList<String> result= new ArrayList<>();
-            String card;
-            while (!(card = input.readLine()).equals("$ENDDECK")){
-               // System.out.println("Card get "+card);
-                result.add(card);
-            }
-           return result;
-        }
-        /**
-         * The run method of this thread.
-         */
-        public void run() {
-            try {
-                // The thread is only started after pair connects.
-                System.out.println("run called, playerConnected = "+playerConnected);
-                //Get shuffled deck and send to client?
-                for (int i=playerConnected-2;i<writers.size();i++){
-                    if (writers.get(i) != output) {
-                        outputOpponent=writers.get(i);
-                        opponentName=players.get(i);
-                        writers.get(i).println("Your opponent " + name+ ", play "+deckName+ " deck.");
-                        writers.get(i).println("$OPPONENTCONNECTED("+name+","+deckName+")");
-                        //Send deck
-                        for (String card:deckList){
-                            writers.get(i).println(card);
-                        }
-                        writers.get(i).println("$ENDDECK");
-                    }
-                }
-                // Repeatedly get commands from the client and process them.
-                while (true) {
-                    String command = input.readLine();
-                    output.println(command);
-                    outputOpponent.println(command);
+    }
 
-                    //System.out.println("2"+ name+"/"+command);
-                    //System.out.println("2" + opponentName+"/"+command);
-                    if (command.contains("$DISCONNECT")) {
-                        System.out.println(name+ " normal disconnected.");
-                        mulliganEnds = "";
-                      //  playerConnected--;
-                      //  writers.remove(output);
-                      //  players.remove(name);
-                      //  System.out.println("playerConnected = "+playerConnected);
-                    }
-                    if (command.contains("$MULLIGANEND")) {
-                        //mulliganEnds++;
-                        ArrayList<String> parameter = Card.getTextBetween(command);
-                        //String ver=parameter.get(2);
-
-                        if (mulliganEnds.equals("")){
-                            mulliganEnds=parameter.get(0);
-                            System.out.println("Mullends write at ("+parameter.get(0));
-                        }
-                        if (mulliganEnds.equals(opponentName)) {
-                            //START
-                            mulliganEnds = "";
-                            System.out.println(name+"/"+"All mulligan ends.");
-                            output.println("$NEWTURN(" + players.get(playerConnected-2) + ")");
-                            outputOpponent.println("$NEWTURN(" + players.get(playerConnected-2) + ")");
-                            randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
-                        }
-                    }
-                }
-            } catch (IOException e) {
-                System.out.println("Player disconnect: " + name+ " :"+e);
-//                playerConnected--;
-//                writers.remove(output);
-//                players.remove(name);
-              //  writers.remove(this.output);
-                //reset connection for all player?
-             //   output.println("$DISCONNECT");
-             //   outputOpponent.println("$DISCONNECT");
-            //    System.out.println("Opponent disconnect");
-//                for (PrintWriter writer : writers) {
-//                    System.out.println("Opponent disconnect");
-//                    writer.println("$DISCONNECT");
-//                }
-            } finally {
-//                try {
-//                  //  socket.close();
-//                  //  writers.clear();
-//                   // players.clear();
-//                } catch (IOException e) {
-//                }
-            }
-        }
+    public static ArrayList<String> getTextBetween(String fromText){
+        ArrayList<String> rtrn = new ArrayList<String>();
+        String beforeText = "(";
+        fromText = fromText.substring(fromText.indexOf(beforeText)+1,fromText.length()-1);
+        String [] par = fromText.split(",");
+        for (int i=0;i<par.length;i++)
+            rtrn.add(par[i]);
+        return rtrn;
     }
 }
