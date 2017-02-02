@@ -46,9 +46,9 @@ public class Deck {
         return topDeck(1);
     }
 
-    public Card drawTopDeck(){
+
+    public Card getTopDeck(){
         Card tmp=cards.get(cards.size()-1);
-        cards.remove(cards.size()-1);
         return tmp;
     }
 
