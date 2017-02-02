@@ -13,7 +13,7 @@ import static com.company.Main.CLIENT_VERSION;
 import static com.company.Main.randomNum;
 
 public class Main {
-    static final String CLIENT_VERSION = "0.01";
+    static final String CLIENT_VERSION = "0.02";
     private static final int PORT = 8901;
     static int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
     static ArrayList<String> names = new ArrayList<>();
@@ -35,6 +35,7 @@ public class Main {
 
 class Player extends Thread {
     String name;
+    public Deck deck;
     private Player opponent;
     private Socket socket;
     BufferedReader input;
@@ -85,11 +86,11 @@ class Player extends Thread {
                         name = parameter.get(0);
                         System.out.println(name + " connected.");
 
-                        boolean nameCorrect=false;
+                        boolean nameCorrect = false;
                         synchronized (Main.names) {
                             if (!Main.names.contains(name)) {
                                 Main.names.add(name);
-                                nameCorrect=true;
+                                nameCorrect = true;
                             } else {
                                 System.out.println("Name already exist.");
                                 //Other name?
@@ -115,15 +116,15 @@ class Player extends Thread {
 
             boolean pairFounded = false;
 
-            // synchronized(freePlayer) {
             while (true) {
                 //If player disconnected before it take pair
-                if (!input.readLine().equals("wait")){
-                    System.out.println("Player "+name +" disconnected before.");
+                String a = input.readLine();
+                System.out.println(name + " wait.");
+                if (!a.equals("wait")) {
+                    System.out.println("Player " + name + " disconnected before.");
                     Main.freePlayer.remove(this);
                 }
-                output.println("wait");
-                //
+
                 for (int i = 0; i < Main.freePlayer.size(); i++) {
                     if (!Main.freePlayer.get(i).name.equals(name) && Main.freePlayer.get(i).name != null) {
                         System.out.println("Pair found: " + name + "/" + Main.freePlayer.get(i).name);
@@ -133,12 +134,17 @@ class Player extends Thread {
                     }
                 }
                 if (pairFounded) break;
+
+                output.println("wait");
             }
+            output.println("ok");
 
             //Get shuffled deck and send to opponent
             opponent.output.println("Your opponent " + name + ", play " + deckName + " deck.");
             opponent.output.println("$OPPONENTCONNECTED(" + name + "," + deckName + ")");
+            System.out.println("Sen opCon for " + opponent.name);
             for (String card : deckList) {
+                //May be send with command? For safety.
                 opponent.output.println(card);
             }
             opponent.output.println("$ENDDECK");
@@ -152,8 +158,7 @@ class Player extends Thread {
                 if (command.contains("$DISCONNECT")) {
                     System.out.println(name + " normal disconnected.");
                     opponent.output.println("$DISCONNECT");
-                    // This client is going down!  Remove its name and its print
-                    // writer from the sets, and close its socket.
+                    // This client is going down!  Remove it
                     if (name != null) {
                         Main.names.remove(name);
                     }
@@ -190,9 +195,9 @@ class Player extends Thread {
             //Reconnect?
         } finally {
             System.out.println("Finaly " + name);
-           if (opponent!=null) opponent.output.println("$DISCONNECT");
-            // This client is going down!  Remove its name and its print
-            // writer from the sets, and close its socket.
+            Main.freePlayer.remove(this);
+            if (opponent != null) opponent.output.println("$DISCONNECT");
+            // This client is going down!  Remove it.
             if (name != null) {
                 Main.names.remove(name);
             }
@@ -207,12 +212,12 @@ class Player extends Thread {
 
     }
 
-    public static ArrayList<String> getTextBetween(String fromText){
-        ArrayList<String> rtrn = new ArrayList<String>();
+    public static ArrayList<String> getTextBetween(String fromText) {
+        ArrayList<String> rtrn = new ArrayList<>();
         String beforeText = "(";
-        fromText = fromText.substring(fromText.indexOf(beforeText)+1,fromText.length()-1);
-        String [] par = fromText.split(",");
-        for (int i=0;i<par.length;i++)
+        fromText = fromText.substring(fromText.indexOf(beforeText) + 1, fromText.length() - 1);
+        String[] par = fromText.split(",");
+        for (int i = 0; i < par.length; i++)
             rtrn.add(par[i]);
         return rtrn;
     }
