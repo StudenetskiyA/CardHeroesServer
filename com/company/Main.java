@@ -1,6 +1,7 @@
 package com.company;
 
 import javax.xml.bind.DatatypeConverter;
+import java.awt.*;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,19 +14,20 @@ import static com.company.Main.CLIENT_VERSION;
 import static com.company.Main.randomNum;
 
 public class Main {
+    static final int COIN_START=10;//TODO 0
     static final String CLIENT_VERSION = "0.02";
     private static final int PORT = 8901;
     static int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
     static ArrayList<String> names = new ArrayList<>();
     static ArrayList<PrintWriter> writers = new ArrayList<>();
-    static ArrayList<Player> freePlayer = new ArrayList<>();
+    static ArrayList<Gamer> freePlayer = new ArrayList<>();
 
     public static void main(String[] args) throws Exception {
         ServerSocket listener = new ServerSocket(PORT);
         System.out.println("Server is Running");
         try {
             while (true) {
-                new Player(listener.accept()).start();
+                new Gamer(listener.accept()).start();
             }
         } finally {
             listener.close();
@@ -33,37 +35,66 @@ public class Main {
     }
 }
 
-class Player extends Thread {
+class Gamer extends Thread{
+    Board board;
     String name;
-    public Deck deck=new Deck("defaultDeck");
-    private Player opponent;
+    Deck simpleDeck = new Deck("defaultDeck");
+    Player player = new Player(this,simpleDeck, "", "", 30);
+    GameQueue gameQueue=new GameQueue();
+     int creatureWhoAttack;
+     int creatureWhoAttackTarget;
+    public  final Object cretureDiedMonitor = new Object();
+    public  final Object monitor = new Object();
+    public  final Object queueMonitor = new Object();
+    int sufflingConst;
+    MyFunction.PlayerStatus status;
+    Gamer opponent;
     private Socket socket;
     BufferedReader input;
     PrintWriter output;
     String deckName;
     ArrayList<String> deckList;
-    ArrayList<Card> cardInHand= new ArrayList<>();
     boolean endMuligan = false;
+    boolean ready=true;
 
-    void drawTopDeckCard(){
-        if (deck.haveTopDeck()) {
-            output.println("$DRAWCARD(" + name + "," + deck.getTopDeck().name + ")");
-            opponent.output.println("$DRAWCARD(" + name + "," + deck.getTopDeck().name + ")");//remove it
-
-            cardInHand.add(0, deck.getTopDeck());
-            deck.removeTopDeck();
-        } else {
-         //   Main.printToView(0, "Deck of " + playerName + " is empty.");
-        }
+    static void printToView(int n,String txt){
+        System.out.println(txt);
+    }
+    static void printToView(int n, Color c, String txt){
+        System.out.println(txt);
     }
 
-    void drawTopDeckCard(int n){
-        if (deck.haveTopDeck()) {
-            output.println("$DRAWNCARD(" + name + "," + deck.getTopDeck().name + ")");
-            cardInHand.add(0, deck.getTopDeck());
-            deck.removeTopDeck();
-        } else {
-            //   Main.printToView(0, "Deck of " + playerName + " is empty.");
+    void setPlayerGameStatus(MyFunction.PlayerStatus _status){
+        status=_status;
+    }
+
+    void sendBoth(String message){
+        output.println(message);
+        opponent.output.println(message);
+    }
+
+    void drawTopDeckCard(String _name){
+        if (_name.equals(name)) {
+            if (player.deck.haveTopDeck()) {
+                // output.println("$DRAWCARD(" + _name + "," + deck.getTopDeck().name + ")");
+                // opponent.output.println("$DRAWCARD(" + _name + "," + deck.getTopDeck().name + ")");//remove it
+
+                player.cardInHand.add(0, player.deck.getTopDeck());
+                player.deck.removeTopDeck();
+            } else {
+                //   Main.printToView(0, "Deck of " + playerName + " is empty.");
+            }
+        }
+        else {
+            if (opponent.player.deck.haveTopDeck()) {
+                output.println("$DRAWCARD(" + _name + "," + opponent.player.deck.getTopDeck().name + ")");
+                opponent.output.println("$DRAWCARD(" + _name + "," + opponent.player.deck.getTopDeck().name + ")");//remove it
+
+                opponent.player.cardInHand.add(0, opponent.player.deck.getTopDeck());
+                opponent.player.deck.removeTopDeck();
+            } else {
+                //   Main.printToView(0, "Deck of " + playerName + " is empty.");
+            }
         }
     }
 
@@ -82,7 +113,7 @@ class Player extends Thread {
         return false;
     }
 
-    Player(Socket socket) {
+    Gamer(Socket socket) {
         this.socket = socket;
     }
 
@@ -92,7 +123,7 @@ class Player extends Thread {
         while (!(card = input.readLine()).equals("$ENDDECK")) {
             result.add(card);
            // System.out.println("Card = "+card);
-            deck.cards.add(new Card(Card.getCardByName(card)));
+            player.deck.cards.add(new Card(Card.getCardByName(card)));
         }
         return result;
     }
@@ -123,6 +154,10 @@ class Player extends Thread {
                         }
                         deckName = parameter.get(1);
                         deckList = getDeckList();
+                        player = new Player(this,player.deck,player.deck.cards.get(0).name,name,player.deck.cards.get(0).hp);
+
+                        player.creatures = new ArrayList<>(2);
+
                         output.println("Hello, " + name + ", you going to play " + deckName + " deck.");
                         output.println("Waiting for opponent to connect");
                         //Const for shuffle
@@ -154,6 +189,7 @@ class Player extends Thread {
                     if (!Main.freePlayer.get(i).name.equals(name) && Main.freePlayer.get(i).name != null) {
                         System.out.println("Pair found: " + name + "/" + Main.freePlayer.get(i).name);
                         opponent = Main.freePlayer.get(i);
+                        opponent.gameQueue=gameQueue;
                         Main.freePlayer.remove(Main.freePlayer.get(i));
                         pairFounded = true;
                     }
@@ -175,18 +211,21 @@ class Player extends Thread {
             opponent.output.println("$ENDDECK");
 
             //Begin game
-            deck.suffleDeck(Main.randomNum);
-            drawTopDeckCard();
-            drawTopDeckCard();
-            drawTopDeckCard();
-            drawTopDeckCard();
+            player.deck.cards.remove(0);//Remove hero from deck
+            player.deck.suffleDeck(Main.randomNum);
+            drawTopDeckCard(name);
+            drawTopDeckCard(name);
+            drawTopDeckCard(name);
+            drawTopDeckCard(name);
+            player.untappedCoin = Main.COIN_START;
+            player.totalCoin = Main.COIN_START;
+            status= MyFunction.PlayerStatus.MuliganPhase;
+            sendStatus();
 
             // Repeatedly get commands from the client and process them.
             while (true) {
                 String command = input.readLine();
-                output.println(command);
-                opponent.output.println(command);
-
+                System.out.println(name+":"+command);
                 if (command.contains("$DISCONNECT")) {
                     System.out.println(name + " normal disconnected.");
                     opponent.output.println("$DISCONNECT");
@@ -203,33 +242,46 @@ class Player extends Thread {
                     }
                     break;
                 }
-                if (command.contains("$MULLIGANEND")) {
+                else if (command.contains("$MULLIGANEND")) {
                     endMuligan = true;
                     ArrayList<String> parameter = MyFunction.getTextBetween(command);
-                    int nc = 0;
-                    for (int i = 3; i >= 0; i--) {
-                        if (Integer.parseInt(parameter.get(i + 1)) == 1) {
-                            deck.putOnBottomDeck(cardInHand.get(i));
-                            cardInHand.remove(i);
-                            nc++;
-                        }
+                    int nc = Integer.parseInt(parameter.get(1));
+                    status= MyFunction.PlayerStatus.waitingMulligan;
+                    for (int i = 0; i <nc; i++) {
+                            player.deck.putOnBottomDeck(parameter.get(i+2));
+                        int a=MyFunction.searchCardInHandByName(player.cardInHand,parameter.get(i+2));
+                            player.removeCardFromHand(a);
                     }
-                    for (int i = 0; i < nc; i++) drawTopDeckCard();
-
+                    for (int i = 0; i < nc; i++) drawTopDeckCard(name);
+                    sendStatus();
                     if (opponent.endMuligan) {
                         //START
-
                         System.out.println("Game for " + name + " and " + opponent.name + " started.");
                         //Choice, who first. Today at random
                         if (isFirstPlayer(name, opponent.name)) {
-                            output.println("$NEWTURN(" + name + ")");
-                            opponent.output.println("$NEWTURN(" + name + ")");
+                            status= MyFunction.PlayerStatus.MyTurn;
+                            opponent.status= MyFunction.PlayerStatus.EnemyTurn;
+                            player.setNumberPlayer(0);
+                            opponent.player.setNumberPlayer(1);
+                            player.newTurn();
                         } else {
-                            output.println("$NEWTURN(" + opponent.name + ")");
-                            opponent.output.println("$NEWTURN(" + opponent.name + ")");
+                            status= MyFunction.PlayerStatus.EnemyTurn;
+                            opponent.status= MyFunction.PlayerStatus.MyTurn;
+                            player.setNumberPlayer(1);
+                            opponent.player.setNumberPlayer(0);
+                            opponent.player.newTurn();
                         }
+                        sendStatus();
+                        opponent.sendStatus();
                         Main.randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);//reroll for next
                     }
+                }
+                else {
+                        ResponseClientMessage responseClientMessage = new ResponseClientMessage(this,command);
+                        responseClientMessage.start();
+
+                   // output.println(command);
+                   // opponent.output.println(command);
                 }
             }
 
@@ -253,6 +305,21 @@ class Player extends Thread {
             }
         }
 
+    }
+
+    void sendStatus(){
+        String s="#TotalStatusPlayer(";
+        s+=status.getValue()+",";
+        s+=player.damage+",";
+        s+=player.untappedCoin+",";
+        s+=player.totalCoin+",";
+        s+=player.deck.getCardExpiried()+",";
+        s+=player.cardInHand.size()+",";
+        for (int i=0;i<player.cardInHand.size();i++){
+            s+=player.cardInHand.get(i).name+",";
+        }
+        s+=")";
+        output.println(s);
     }
 
     public static ArrayList<String> getTextBetween(String fromText) {

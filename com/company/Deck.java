@@ -9,8 +9,7 @@ import java.util.*;
  * Created by StudenetskiyA on 30.12.2016.
  */
 public class Deck {
-    public ArrayList<Card> cards = new ArrayList<>();
-
+    ArrayList<Card> cards = new ArrayList<>();
     public String name;
 
     public Deck(String _name){
@@ -46,6 +45,11 @@ public class Deck {
         return topDeck(1);
     }
 
+    public Card drawTopDeck(){
+        Card tmp=cards.get(cards.size()-1);
+        cards.remove(cards.size()-1);
+        return tmp;
+    }
 
     public Card getTopDeck(){
         Card tmp=cards.get(cards.size()-1);
@@ -55,6 +59,10 @@ public class Deck {
     public void removeTopDeck(){
         if (haveTopDeck())
             cards.remove(cards.size()-1);
+    }
+
+    public void putOnBottomDeck(String _cardName){
+        cards.add(0,Card.getCardByName(_cardName));
     }
 
     public void putOnBottomDeck(Card _card){

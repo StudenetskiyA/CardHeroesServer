@@ -12,6 +12,7 @@ import java.util.ArrayList;
  */
 public class MyFunction {
 
+
     public static ArrayList<String> getTextBetween(String fromText) {
         ArrayList<String> rtrn = new ArrayList<String>();
         String beforeText = "(";
@@ -23,6 +24,70 @@ public class MyFunction {
     }
 
     enum Target {myPlayer,myCreature,enemyPlayer,enemyCreature}
+
+    enum PlayerStatus {
+        MyTurn(1), EnemyTurn(2), IChoiceBlocker(3), EnemyChoiceBlocker(4), EnemyChoiceTarget(5), MuliganPhase(6), waitingForConnection(7),
+        waitOtherPlayer(8), waitingMulligan(9), choiseX(10), searchX(11), choiceTarget(12), digX(13), endGame(14), prepareForBattle(15),
+        unknow(0);
+
+        private final int value;
+
+        PlayerStatus(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public static PlayerStatus fromInteger(int x) {
+            switch(x) {
+                case 0:
+                    return unknow;
+                case 1:
+                    return MyTurn;
+                case 2:
+                    return EnemyTurn;
+                case 3:
+                    return IChoiceBlocker;
+                case 4:
+                    return EnemyChoiceBlocker;
+                case 5:
+                    return EnemyChoiceTarget;
+                case 6:
+                    return MuliganPhase;
+                case 7:
+                    return waitingForConnection;
+                case 8:
+                    return waitOtherPlayer;
+                case 9:
+                    return waitingMulligan;
+                case 10:
+                    return choiseX;
+                case 11:
+                    return searchX;
+                case 12:
+                    return choiceTarget;
+                case 13:
+                    return digX;
+                case 14:
+                    return endGame;
+                case 15:
+                    return prepareForBattle;
+            }
+            return null;
+        }
+    }
+
+
+    public static boolean canTargetComplex(Creature cr){
+        boolean canTarget=false;
+        if (Board.creature.get(0).size() > 0 && MyFunction.canTarget(MyFunction.Target.myCreature,cr.targetType)) canTarget=true;
+        if (Board.creature.get(1).size() > 0 && MyFunction.canTarget(MyFunction.Target.enemyCreature,cr.targetType)) canTarget=true;
+        if (MyFunction.canTarget(MyFunction.Target.enemyPlayer,cr.targetType)) canTarget=true;//Both players always stay on board
+        if (MyFunction.canTarget(MyFunction.Target.myPlayer,cr.targetType)) canTarget=true;
+        return canTarget;
+    }
 
     public static boolean canTarget(Target target,int targetType){
         //10 my hero or my creature, not self
@@ -44,6 +109,13 @@ public class MyFunction {
             if (targetType==1 || targetType==3 || targetType==4 || targetType==6) return true;
         }
         return false;
+    }
+
+    public static int searchCardInHandByName(ArrayList<Card> _array,String _name){
+        for (int i=0;i<_array.size();i++) {
+            if (_array.get(i).name.equals(_name)) return i;
+        }
+        return -1;
     }
 
     public static int getNumericAfterText(String fromText, String afterText) {
