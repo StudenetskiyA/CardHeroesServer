@@ -214,7 +214,7 @@ public class Creature extends Card {
         }
 
         //Response queue
-        owner.owner.gameQueue.responseAllQueue();
+//        owner.owner.gameQueue.responseAllQueue();
     }
 
     void heal(int dmg) {

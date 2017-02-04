@@ -8,9 +8,11 @@ package com.company;
 public class GameQueue
 {
     Gamer gamer;
+    Gamer opponent;
 
     GameQueue(Gamer _gamer){
         gamer=_gamer;
+        opponent=gamer.opponent;
     }
 
     static class QueueEvent {

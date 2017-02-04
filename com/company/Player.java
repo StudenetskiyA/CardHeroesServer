@@ -355,7 +355,7 @@ public class Player extends Card {
             }
         }
         //Bogart and other
-        owner.gameQueue.responseAllQueue();
+        //owner.gameQueue.responseAllQueue();
 
         untap();
         //Get coin
@@ -381,7 +381,7 @@ public class Player extends Card {
             //poison, here creature may die, check it for after.
             if ((creatures.get(i).effects.poison != 0) && (!creatures.get(i).text.contains("Защита от отравления.")))
                 creatures.get(i).takeDamage(creatures.get(i).effects.poison, Creature.DamageSource.poison);
-            owner.gameQueue.responseAllQueue();//poison queue
+          //  owner.gameQueue.responseAllQueue();//poison queue
         }
 
         //Draw
@@ -460,7 +460,7 @@ public class Player extends Card {
             owner.printToView(0, "Не хватает монет.");
         }
 
-        owner.gameQueue.responseAllQueue();
+      //  owner.gameQueue.responseAllQueue();
     }
 
     void drawCard() {
@@ -514,7 +514,7 @@ public class Player extends Card {
                 owner.sendBoth("#TakeHeroDamage("+playerName+","+dmg+")");
                 owner.printToView(0, this.name + " получет " + dmg + " урона.");
             }
-        } else {
+        } else {//Not here, because it may be in queue and at end of queue restore status
             if (this.numberPlayer==0){
                 System.out.println("You lose game.");
                 owner.sendBoth("#LoseGame("+playerName+")");

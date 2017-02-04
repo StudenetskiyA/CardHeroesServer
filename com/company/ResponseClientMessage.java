@@ -21,7 +21,9 @@ public class ResponseClientMessage extends Thread {
     }
 
     public synchronized void run() {
+        boolean dontDoQueue=false;
         gamer.ready = false;
+
         System.out.println(fromServer);
         if (fromServer.contains("$ENDTURN(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
@@ -87,6 +89,7 @@ public class ResponseClientMessage extends Thread {
                         cr.tapTargetAbility(tmpPlayer.creatures.get(Integer.parseInt(parameter.get(3))), null);
                 }
             }
+            dontDoQueue=true;
             freeMonitor();
         }
         else if (fromServer.contains("$EQUIPTARGET(")) {
@@ -314,7 +317,10 @@ public class ResponseClientMessage extends Thread {
 //                //scrollPane.getVerticalScrollBar().setValue(scrollPane.getVerticalScrollBar().getMaximum());
 //            }
 
-        //gamer.gameQueue.responseAllQueue();
+        if (!dontDoQueue) {
+            gamer.opponent.gameQueue.responseAllQueue();
+            gamer.gameQueue.responseAllQueue();
+        }
 
         synchronized (gamer.monitor) {
             gamer.ready = true;
