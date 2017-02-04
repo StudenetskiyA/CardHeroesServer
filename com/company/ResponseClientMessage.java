@@ -314,7 +314,7 @@ public class ResponseClientMessage extends Thread {
 //                //scrollPane.getVerticalScrollBar().setValue(scrollPane.getVerticalScrollBar().getMaximum());
 //            }
 
-        gamer.gameQueue.responseAllQueue();
+        //gamer.gameQueue.responseAllQueue();
 
         synchronized (gamer.monitor) {
             gamer.ready = true;
