@@ -311,6 +311,10 @@ class Gamer extends Thread {
         output.println(s);
     }
 
+    void sendUntapAll(){
+        output.println("#UntapAll()");
+    }
+
     void sendStatus() {
         System.out.println("Sending status to " + player.playerName + ", status= " + status.getValue());
         String s = "#TotalStatusPlayer(";

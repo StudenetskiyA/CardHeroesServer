@@ -177,13 +177,11 @@ public class Creature extends Card {
         isTapped = false;
         owner.owner.sendBoth("#TapCreature("+owner.playerName+","+owner.getNumberOfCreature(this)+",0)");
     }
-    private ArrayList<Creature> canAnyoneBlock(Creature target) {//Return list of creature, who may be block this
-        int pl;
-        if (owner.numberPlayer == 0) pl = 1;
-        else pl = 0;
+    private ArrayList<Creature> canAnyoneBlock(Creature target) {
+        //Return list of creature, who may be block this
 
         //get list of opponent creature
-        ArrayList<Creature> crt = new ArrayList<>(owner.creatures);
+        ArrayList<Creature> crt = new ArrayList<>(owner.owner.opponent.player.creatures);
         ArrayList<Creature> crtCopy = new ArrayList<>(crt);
         ListIterator<Creature> temp = crtCopy.listIterator();
 
@@ -240,12 +238,10 @@ public class Creature extends Card {
             if (blocker.size() != 0) {
                 int nc = owner.creatures.indexOf(this);
                 int nt = owner.owner.opponent.player.creatures.indexOf(target);
-               // if (Main.replayCounter == 0) {
-                owner.owner.sendBoth("$CHOISEBLOCKER(" + owner.owner.opponent.player.playerName + "," + nc + "," + nt + ")");
-                System.out.println("$CHOISEBLOCKER(" +  owner.owner.opponent.player.playerName + "," + nc + "," + nt + ")");
-                    owner.owner.creatureWhoAttackTarget = nt;
-                    owner.owner.creatureWhoAttack = nc;
-               // }
+                owner.owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.IChoiceBlocker);
+                owner.owner.opponent.creatureWhoAttack = nc;
+                owner.owner.opponent.creatureWhoAttackTarget = nt;
+                owner.owner.opponent.output.println("#ChoiceBlocker("+owner.owner.opponent.name+","+nc+","+nt+")");
                 owner.owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceBlocker);
             } else {
                 fightCreature(target);
@@ -266,12 +262,10 @@ public class Creature extends Card {
             if (blocker.size() != 0) {
                 int nc = owner.creatures.indexOf(this);
                 int nt = -1;
-               // if (Main.replayCounter == 0) {
-                    owner.owner.sendBoth("$CHOISEBLOCKER(" +  owner.owner.opponent.player.playerName + "," + nc + "," + nt + ")");
-                    System.out.println("$CHOISEBLOCKER(" +  owner.owner.opponent.player.playerName + "," + nc + "," + nt + ")");
-                    owner.owner.creatureWhoAttackTarget = nt;
-                    owner.owner.creatureWhoAttack = nc;
-               // }
+                owner.owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.IChoiceBlocker);
+                owner.owner.opponent.creatureWhoAttack = nc;
+                owner.owner.opponent.creatureWhoAttackTarget = nt;
+                owner.owner.opponent.output.println("#ChoiceBlocker("+owner.owner.opponent.name+","+nc+","+nt+")");
                 owner.owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceBlocker);
             } else {
                 fightPlayer(target);

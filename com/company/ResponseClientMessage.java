@@ -32,21 +32,25 @@ public class ResponseClientMessage extends Thread {
                 gamer.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyTurn);
                 gamer.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.MyTurn);
                 player.endTurn();
+                gamer.opponent.sendUntapAll();
             } else if (gamer.opponent.player.playerName.equals(parameter.get(0))) {
                // player.endTurn();
             }
-        } else if (fromServer.contains("$NEWTURN(")) {
-            gamer.setPlayerGameStatus(MyFunction.PlayerStatus.MyTurn);
-            player.newTurn();
         }
+//        else if (fromServer.contains("$NEWTURN(")) {
+//            gamer.setPlayerGameStatus(MyFunction.PlayerStatus.MyTurn);
+//            player.newTurn();
+//        }
          else if (fromServer.contains("$CHOISEBLOCKER(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
            // if (players[0].playerName.equals(parameter.get(0))) {
-                gamer.status = PlayerStatus.IChoiceBlocker;
-                gamer.creatureWhoAttack = Integer.parseInt(parameter.get(1));
-                gamer.creatureWhoAttackTarget = Integer.parseInt(parameter.get(2));
+                gamer.opponent.status = PlayerStatus.IChoiceBlocker;
+                gamer.opponent.creatureWhoAttack = Integer.parseInt(parameter.get(1));
+                gamer.opponent.creatureWhoAttackTarget = Integer.parseInt(parameter.get(2));
            // }
-        } else if (fromServer.contains("$TAPNOTARGET(")) {
+            dontDoQueue=true;
+        }
+        else if (fromServer.contains("$TAPNOTARGET(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             player.creatures.get(Integer.parseInt(parameter.get(1))).tapNoTargetAbility();
         } else if (fromServer.contains("$DISCARD(")) {
@@ -124,6 +128,7 @@ public class ResponseClientMessage extends Thread {
                 if (parameter.get(2).equals("-1")) player.ability(null, player);
                 else player.ability(player.creatures.get(Integer.parseInt(parameter.get(2))), null);
             }
+            dontDoQueue=true;
         } else if (fromServer.contains("$HERONOTARGET(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             //int pl = Board.getPlayerNumByName(parameter.get(0));
@@ -134,13 +139,8 @@ public class ResponseClientMessage extends Thread {
             player.abilityNoTarget();
         } else if (fromServer.contains("$BLOCKER(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
-//            int pl = Board.getPlayerNumByName(parameter.get(0));
-//            int apl = (pl == 0) ? 1 : 0;
-           // if (pl == 0) 
-            gamer.status = PlayerStatus.EnemyTurn;
-            //else isMyTurn = Main.PlayerStatus.MyTurn;
 
-            Creature cr = gamer.opponent.player.creatures.get(Integer.parseInt(parameter.get(1)));
+            Creature cr = gamer.opponent.player.creatures.get(Integer.parseInt(parameter.get(1)));//Who attack
             if (Integer.parseInt(parameter.get(2)) == -1) {
                 if (Integer.parseInt(parameter.get(3)) == -1) {
                     //Fight with hero
@@ -169,6 +169,9 @@ public class ResponseClientMessage extends Thread {
                     }
                 }
             }
+            gamer.setPlayerGameStatus(PlayerStatus.EnemyTurn);
+            gamer.opponent.setPlayerGameStatus(PlayerStatus.MyTurn);
+            dontDoQueue=true;
         }
          else if (fromServer.contains("$PLAYCARD(")) {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
