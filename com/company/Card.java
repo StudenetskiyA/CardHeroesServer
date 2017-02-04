@@ -24,26 +24,6 @@ class Card {
     String hash;//for suffling
 
     static Card simpleCard = new Card(0, "", "", 0, 0, 0, 0, "", 0, 0);
-    
-    static class ActivatedAbility {
-
-        static Creature creature;
-        static boolean creatureTap;
-        enum WhatAbility{heroAbility,weaponAbility,toHandAbility,onUpkeepPlayed,onDeathPlayed,onOtherDeathPlayed,nothing}
-        static WhatAbility whatAbility=WhatAbility.nothing;
-        static int heroAbilityCost = 0;
-        public static boolean isThatAbility(WhatAbility ab){
-            if (ab==whatAbility) return true;
-            return false;
-        }
-        public static boolean isNothingOrDeath(){
-            if (whatAbility==WhatAbility.nothing) return true;
-            if (whatAbility==WhatAbility.onDeathPlayed) return true;
-            if (whatAbility==WhatAbility.onUpkeepPlayed) return true;
-            if (whatAbility==WhatAbility.onOtherDeathPlayed) return true;
-            return false;
-        }
-    }
 
     public Card(Card _card) {
         //owner=_owner;

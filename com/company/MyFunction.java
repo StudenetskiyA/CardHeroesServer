@@ -12,6 +12,46 @@ import java.util.ArrayList;
  */
 public class MyFunction {
 
+    static class ActivatedAbility {
+
+        static Creature creature;
+        static boolean creatureTap;
+        static WhatAbility whatAbility=WhatAbility.nothing;
+
+        enum WhatAbility {
+            heroAbility(1), weaponAbility(2), toHandAbility(3), onUpkeepPlayed(4), onDeathPlayed(5), onOtherDeathPlayed(6), nothing(0);
+
+            private final int value;
+
+            WhatAbility(int value) {
+                this.value = value;
+            }
+
+            public int getValue() {
+                return value;
+            }
+
+            public static WhatAbility fromInteger(int x) {
+                switch (x) {
+                    case 0:
+                        return nothing;
+                    case 1:
+                        return heroAbility;
+                    case 2:
+                        return weaponAbility;
+                    case 3:
+                        return toHandAbility;
+                    case 4:
+                        return onUpkeepPlayed;
+                    case 5:
+                        return onDeathPlayed;
+                    case 6:
+                        return onOtherDeathPlayed;
+                }
+                return null;
+            }
+        }
+    }
 
     public static ArrayList<String> getTextBetween(String fromText) {
         ArrayList<String> rtrn = new ArrayList<String>();
@@ -80,10 +120,10 @@ public class MyFunction {
     }
 
 
-    public static boolean canTargetComplex(Creature cr){
+    public static boolean canTargetComplex(Player pl, Creature cr){
         boolean canTarget=false;
-        if (Board.creature.get(0).size() > 0 && MyFunction.canTarget(MyFunction.Target.myCreature,cr.targetType)) canTarget=true;
-        if (Board.creature.get(1).size() > 0 && MyFunction.canTarget(MyFunction.Target.enemyCreature,cr.targetType)) canTarget=true;
+        if (pl.creatures.size() > 0 && MyFunction.canTarget(MyFunction.Target.myCreature,cr.targetType)) canTarget=true;
+        if (pl.creatures.size() > 0 && MyFunction.canTarget(MyFunction.Target.enemyCreature,cr.targetType)) canTarget=true;
         if (MyFunction.canTarget(MyFunction.Target.enemyPlayer,cr.targetType)) canTarget=true;//Both players always stay on board
         if (MyFunction.canTarget(MyFunction.Target.myPlayer,cr.targetType)) canTarget=true;
         return canTarget;
@@ -139,13 +179,13 @@ public class MyFunction {
         return numdmg;
     }
 //
-//    public static int getNumDiedButNotRemovedYet(ArrayList<Creature> list){
-//        int n=0;
-//        for (Creature cr:list){
-//            if (cr.getTougness()<=cr.damage) n++;
-//        }
-//        return n;
-//    }
+    public static int getNumDiedButNotRemovedYet(ArrayList<Creature> list){
+        int n=0;
+        for (Creature cr:list){
+            if (cr.getTougness()<=cr.damage) n++;
+        }
+        return n;
+    }
 
 //    public static boolean canTargetComplex(Creature cr){
 //        boolean canTarget=false;

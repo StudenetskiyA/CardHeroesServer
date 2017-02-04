@@ -3,8 +3,8 @@ package com.company;
 import java.awt.*;
 import java.util.*;
 
-import static com.company.Card.ActivatedAbility.WhatAbility.*;
-
+import static com.company.MyFunction.*;
+import static com.company.MyFunction.ActivatedAbility.WhatAbility.*;
 
 /**
  * Created by StudenetskiyA on 30.12.2016.
@@ -89,6 +89,7 @@ public class Player extends Card {
         equpiment[3] = null;
     }
 
+
     Player(Gamer _owner,Deck _deck, String _heroName, String _playerName, int _hp) {
         super(0, _heroName, "", 1, 0, 0, 0, "", 0, _hp);
         owner=_owner;
@@ -156,8 +157,7 @@ public class Player extends Card {
             if (cr != null && crDied.size() > 0 && !cr.activatedAbilityPlayed) {
                 System.out.println("Падальщик " + playerName);
                 //CHECK EXIST TARGET
-                if (MyFunction.canTargetComplex(cr)) {
-                    owner.printToView(0, cr.name + " просит выбрать цель.");
+                if (MyFunction.canTargetComplex(this,cr)) {
 
                     if (numberPlayer == 0) {
                         owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
@@ -168,6 +168,7 @@ public class Player extends Card {
                     ActivatedAbility.creature = cr;
                     ActivatedAbility.whatAbility = onOtherDeathPlayed;
                     //pause until player choice target.
+                    owner.sendChoiceTarget(cr.name + " просит выбрать цель.");
                     System.out.println("pause");
                     synchronized (owner.cretureDiedMonitor) {
                         try {
@@ -189,9 +190,7 @@ public class Player extends Card {
             }
             if (tmp.text.contains("Гибельт:") && !tmp.effects.deathPlayed) {
                 //CHECK EXIST TARGET
-                if (MyFunction.canTargetComplex(tmp)) {
-                    owner.printToView(0, tmp.name + " просит выбрать цель.");
-
+                if (MyFunction.canTargetComplex(this,tmp)) {
                     if (numberPlayer == 0) {
                         owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                     } else {
@@ -201,6 +200,7 @@ public class Player extends Card {
                     ActivatedAbility.creature = new Creature(tmp);
                     ActivatedAbility.whatAbility = onDeathPlayed;
                     //pause until player choice target.
+                    owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
                     System.out.println("pause");
                     synchronized (owner.cretureDiedMonitor) {
                         try {
@@ -215,7 +215,6 @@ public class Player extends Card {
                     //Check n card
                     int n = cardInHand.size();
                     if (n > 1) {
-                        owner.printToView(0, tmp.name + " просит сбросить карту.");//And other later, today only one
                         if (numberPlayer == 0) {
                            owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                         } else {
@@ -225,6 +224,7 @@ public class Player extends Card {
                         ActivatedAbility.creature = new Creature(tmp);
                         ActivatedAbility.whatAbility = ActivatedAbility.WhatAbility.toHandAbility;
                         //pause until player choice target.
+                        owner.sendChoiceTarget(tmp.name + " просит cбросить карту.");
                         System.out.println("pause");
                         synchronized (owner.cretureDiedMonitor) {
                             try {
@@ -261,8 +261,6 @@ public class Player extends Card {
                 if (creatures.size() > 1 && !tmp.effects.upkeepPlayed) {
                     System.out.println("Амбрадоринг " + playerName);
                     //CHECK EXIST TARGET
-                    owner.printToView(0, tmp.name + " просит выбрать цель.");
-
                     if (numberPlayer == 0) {
                         owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
                     } else {
@@ -272,6 +270,7 @@ public class Player extends Card {
                     ActivatedAbility.creature = tmp;
                     ActivatedAbility.whatAbility = onUpkeepPlayed;
                     //pause until player choice target.
+                    owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
                     System.out.println("pause");
                     synchronized (owner.cretureDiedMonitor) {
                         try {
@@ -299,17 +298,16 @@ public class Player extends Card {
             }
             if (tmp.text.contains("Наймт:") && !tmp.effects.battlecryPlayed && tmp.getTougness() > tmp.damage)
                 //CHECK EXIST TARGET
-                if (MyFunction.canTargetComplex(tmp)) {
-                    if (numberPlayer == 0) {
+                if (MyFunction.canTargetComplex(this,tmp)) {
+                   // if (numberPlayer == 0) {
                         owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
-                    } else {
-                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
-                    }
-                    owner.printToView(0, tmp.name + " просит выбрать цель.");
-
+//                    } else {
+//                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
+//                    }
                     ActivatedAbility.creature = tmp;
                     ActivatedAbility.whatAbility = nothing;
                     //pause until player choice target.
+                    owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
                     System.out.println("pause");
                     synchronized (owner.cretureDiedMonitor) {
                         try {
@@ -390,7 +388,7 @@ public class Player extends Card {
         if (owner.board.turnCount != 1) drawCard();//First player not draw card in first turn. It's rule.
         //Send status
         owner.sendStatus();
-        owner.opponent.sendStatus();
+        //owner.opponent.sendStatus();
     }
 
     void playCardX(int num, Card _card, Creature _targetCreature, Player _targetPlayer, int x) {
@@ -513,7 +511,7 @@ public class Player extends Card {
         if (hp > damage + dmg) {
             damage += dmg;
             if (dmg != 0){
-                owner.sendBoth("#TakeHeroDamage("+playerName+","+dmg+",1)");
+                owner.sendBoth("#TakeHeroDamage("+playerName+","+dmg+")");
                 owner.printToView(0, this.name + " получет " + dmg + " урона.");
             }
         } else {

@@ -1,6 +1,5 @@
 package com.company;
 
-import static com.company.Main.*;
 
 /**
  * Created by StudenetskiyA on 23.01.2017.
@@ -8,7 +7,14 @@ import static com.company.Main.*;
 
 public class GameQueue
 {
+    Gamer gamer;
+
+    GameQueue(Gamer _gamer){
+        gamer=_gamer;
+    }
+
     static class QueueEvent {
+
         String whatToDo;
         Creature targetCr;
         int howMany;
@@ -48,7 +54,8 @@ public class GameQueue
     }
 
     public void responseAllQueue(){
-        //Main.memPlayerStatus=Main.isMyTurn;
+       gamer.memPlayerStatus=gamer.status;
+       System.out.println("Queue save status for "+gamer.name+" at "+gamer.status.toString());
         while (size() != 0) {
             GameQueue.QueueEvent event = pull();
            // Main.readyQueue=false;
@@ -75,7 +82,8 @@ public class GameQueue
                 }
             }
         }
-//        Main.isMyTurn=Main.memPlayerStatus;
+        System.out.println("complite queue response");
+        gamer.status=gamer.memPlayerStatus;
 //        synchronized (Main.queueMonitor) {
 //            readyQueue = true;
 //            Main.queueMonitor.notifyAll();

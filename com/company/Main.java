@@ -14,7 +14,7 @@ import static com.company.Main.CLIENT_VERSION;
 import static com.company.Main.randomNum;
 
 public class Main {
-    static final int COIN_START=10;//TODO 0
+    static final int COIN_START = 10;//TODO 0
     static final String CLIENT_VERSION = "0.02";
     private static final int PORT = 8901;
     static int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
@@ -35,67 +35,53 @@ public class Main {
     }
 }
 
-class Gamer extends Thread{
-    Board board;
+class Gamer extends Thread {
+    Board board = new Board();
     String name;
     Deck simpleDeck = new Deck("defaultDeck");
-    Player player = new Player(this,simpleDeck, "", "", 30);
-    GameQueue gameQueue=new GameQueue();
-     int creatureWhoAttack;
-     int creatureWhoAttackTarget;
-    public  final Object cretureDiedMonitor = new Object();
-    public  final Object monitor = new Object();
-    public  final Object queueMonitor = new Object();
+    Player player = new Player(this, simpleDeck, "", "", 0);//For load deck, then set normal hero by new Player(Gamer _owner, Card _card, Deck _deck, String _playerName)
+    GameQueue gameQueue = new GameQueue(this);
+    int creatureWhoAttack;
+    int creatureWhoAttackTarget;
+    public final Object cretureDiedMonitor = new Object();
+    public final Object monitor = new Object();
+    public final Object queueMonitor = new Object();
     int sufflingConst;
     MyFunction.PlayerStatus status;
+    MyFunction.PlayerStatus memPlayerStatus;
     Gamer opponent;
     private Socket socket;
     BufferedReader input;
     PrintWriter output;
     String deckName;
-    ArrayList<String> deckList;
+    ArrayList<String> deckList = new ArrayList<>();
     boolean endMuligan = false;
-    boolean ready=true;
+    boolean ready = true;
+     int choiceXcolor = 0;
+     int choiceXtype = 0;
+     String choiceXcreatureType = "";
+     int choiceXcost = 0;
+     int choiceXcostExactly = 0;
+     String choiceXtext;
 
-    static void printToView(int n,String txt){
+    void printToView(int n, String txt) {
+        sendBoth("#Message(" + n + "," + txt + ")");
         System.out.println(txt);
     }
-    static void printToView(int n, Color c, String txt){
+
+    void printToView(int n, Color c, String txt) {
+        sendBoth("#Message(" + n + "," + txt + ")");
         System.out.println(txt);
     }
 
-    void setPlayerGameStatus(MyFunction.PlayerStatus _status){
-        status=_status;
+    void setPlayerGameStatus(MyFunction.PlayerStatus _status) {
+        status = _status;
     }
 
-    void sendBoth(String message){
+    void sendBoth(String message) {
+        System.out.println("Send both:" + message);
         output.println(message);
         opponent.output.println(message);
-    }
-
-    void drawTopDeckCard(String _name){
-        if (_name.equals(name)) {
-            if (player.deck.haveTopDeck()) {
-                // output.println("$DRAWCARD(" + _name + "," + deck.getTopDeck().name + ")");
-                // opponent.output.println("$DRAWCARD(" + _name + "," + deck.getTopDeck().name + ")");//remove it
-
-                player.cardInHand.add(0, player.deck.getTopDeck());
-                player.deck.removeTopDeck();
-            } else {
-                //   Main.printToView(0, "Deck of " + playerName + " is empty.");
-            }
-        }
-        else {
-            if (opponent.player.deck.haveTopDeck()) {
-                output.println("$DRAWCARD(" + _name + "," + opponent.player.deck.getTopDeck().name + ")");
-                opponent.output.println("$DRAWCARD(" + _name + "," + opponent.player.deck.getTopDeck().name + ")");//remove it
-
-                opponent.player.cardInHand.add(0, opponent.player.deck.getTopDeck());
-                opponent.player.deck.removeTopDeck();
-            } else {
-                //   Main.printToView(0, "Deck of " + playerName + " is empty.");
-            }
-        }
     }
 
     boolean isFirstPlayer(String name1, String name2) {
@@ -122,7 +108,7 @@ class Gamer extends Thread{
         String card;
         while (!(card = input.readLine()).equals("$ENDDECK")) {
             result.add(card);
-           // System.out.println("Card = "+card);
+            // System.out.println("Card = "+card);
             player.deck.cards.add(new Card(Card.getCardByName(card)));
         }
         return result;
@@ -154,9 +140,10 @@ class Gamer extends Thread{
                         }
                         deckName = parameter.get(1);
                         deckList = getDeckList();
-                        player = new Player(this,player.deck,player.deck.cards.get(0).name,name,player.deck.cards.get(0).hp);
+                        player = new Player(this, player.deck.cards.get(0), player.deck,name);
 
                         player.creatures = new ArrayList<>(2);
+
 
                         output.println("Hello, " + name + ", you going to play " + deckName + " deck.");
                         output.println("Waiting for opponent to connect");
@@ -179,7 +166,7 @@ class Gamer extends Thread{
             while (true) {
                 //If player disconnected before it take pair
                 String a = input.readLine();
-              //  System.out.println(name + " wait.");
+                //  System.out.println(name + " wait.");
                 if (!a.equals("wait")) {
                     System.out.println("Player " + name + " disconnected before.");
                     Main.freePlayer.remove(this);
@@ -189,7 +176,7 @@ class Gamer extends Thread{
                     if (!Main.freePlayer.get(i).name.equals(name) && Main.freePlayer.get(i).name != null) {
                         System.out.println("Pair found: " + name + "/" + Main.freePlayer.get(i).name);
                         opponent = Main.freePlayer.get(i);
-                        opponent.gameQueue=gameQueue;
+                        //opponent.gameQueue = gameQueue;
                         Main.freePlayer.remove(Main.freePlayer.get(i));
                         pairFounded = true;
                     }
@@ -212,20 +199,23 @@ class Gamer extends Thread{
 
             //Begin game
             player.deck.cards.remove(0);//Remove hero from deck
+            Main.randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);//reroll for next
             player.deck.suffleDeck(Main.randomNum);
-            drawTopDeckCard(name);
-            drawTopDeckCard(name);
-            drawTopDeckCard(name);
-            drawTopDeckCard(name);
+            Main.randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);//reroll for next
+            player.drawCard();
+            player.drawCard();
+            player.drawCard();
+            player.drawCard();
+
             player.untappedCoin = Main.COIN_START;
             player.totalCoin = Main.COIN_START;
-            status= MyFunction.PlayerStatus.MuliganPhase;
+            status = MyFunction.PlayerStatus.MuliganPhase;
             sendStatus();
 
             // Repeatedly get commands from the client and process them.
             while (true) {
                 String command = input.readLine();
-                System.out.println(name+":"+command);
+                System.out.println(name + ":" + command);
                 if (command.contains("$DISCONNECT")) {
                     System.out.println(name + " normal disconnected.");
                     opponent.output.println("$DISCONNECT");
@@ -241,32 +231,31 @@ class Gamer extends Thread{
                     } catch (IOException e) {
                     }
                     break;
-                }
-                else if (command.contains("$MULLIGANEND")) {
+                } else if (command.contains("$MULLIGANEND")) {
                     endMuligan = true;
                     ArrayList<String> parameter = MyFunction.getTextBetween(command);
                     int nc = Integer.parseInt(parameter.get(1));
-                    status= MyFunction.PlayerStatus.waitingMulligan;
-                    for (int i = 0; i <nc; i++) {
-                            player.deck.putOnBottomDeck(parameter.get(i+2));
-                        int a=MyFunction.searchCardInHandByName(player.cardInHand,parameter.get(i+2));
-                            player.removeCardFromHand(a);
+                    status = MyFunction.PlayerStatus.waitingMulligan;
+                    for (int i = 0; i < nc; i++) {
+                        player.deck.putOnBottomDeck(parameter.get(i + 2));
+                        int a = MyFunction.searchCardInHandByName(player.cardInHand, parameter.get(i + 2));
+                        player.removeCardFromHand(a);
                     }
-                    for (int i = 0; i < nc; i++) drawTopDeckCard(name);
+                    for (int i = 0; i < nc; i++) player.drawCard();
                     sendStatus();
                     if (opponent.endMuligan) {
                         //START
                         System.out.println("Game for " + name + " and " + opponent.name + " started.");
                         //Choice, who first. Today at random
                         if (isFirstPlayer(name, opponent.name)) {
-                            status= MyFunction.PlayerStatus.MyTurn;
-                            opponent.status= MyFunction.PlayerStatus.EnemyTurn;
+                            status = MyFunction.PlayerStatus.MyTurn;
+                            opponent.status = MyFunction.PlayerStatus.EnemyTurn;
                             player.setNumberPlayer(0);
                             opponent.player.setNumberPlayer(1);
                             player.newTurn();
                         } else {
-                            status= MyFunction.PlayerStatus.EnemyTurn;
-                            opponent.status= MyFunction.PlayerStatus.MyTurn;
+                            status = MyFunction.PlayerStatus.EnemyTurn;
+                            opponent.status = MyFunction.PlayerStatus.MyTurn;
                             player.setNumberPlayer(1);
                             opponent.player.setNumberPlayer(0);
                             opponent.player.newTurn();
@@ -275,13 +264,17 @@ class Gamer extends Thread{
                         opponent.sendStatus();
                         Main.randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);//reroll for next
                     }
-                }
-                else {
-                        ResponseClientMessage responseClientMessage = new ResponseClientMessage(this,command);
-                        responseClientMessage.start();
-
-                   // output.println(command);
-                   // opponent.output.println(command);
+                } else {
+                    ResponseClientMessage responseClientMessage = new ResponseClientMessage(this, command);
+                    responseClientMessage.start();
+//                    //pause until response ends
+//                    synchronized (monitor) {
+//                        try {
+//                            monitor.wait();
+//                        } catch (InterruptedException e2) {
+//                            e2.printStackTrace();
+//                        }
+//                    }
                 }
             }
 
@@ -307,18 +300,31 @@ class Gamer extends Thread{
 
     }
 
-    void sendStatus(){
-        String s="#TotalStatusPlayer(";
-        s+=status.getValue()+",";
-        s+=player.damage+",";
-        s+=player.untappedCoin+",";
-        s+=player.totalCoin+",";
-        s+=player.deck.getCardExpiried()+",";
-        s+=player.cardInHand.size()+",";
-        for (int i=0;i<player.cardInHand.size();i++){
-            s+=player.cardInHand.get(i).name+",";
+    void sendChoiceTarget(String message){
+        System.out.println("Sending choice target to " + player.playerName + ", whatAbility= " + MyFunction.ActivatedAbility.whatAbility.getValue());
+        String s = "#ChoiceTarget(";
+        s+=player.playerName+",";
+        s+= status.getValue() + ",";
+        s+=player.creatures.indexOf(MyFunction.ActivatedAbility.creature)+",";
+        s+=MyFunction.ActivatedAbility.whatAbility.getValue()+",";
+        s+=message+")";
+        output.println(s);
+    }
+
+    void sendStatus() {
+        System.out.println("Sending status to " + player.playerName + ", status= " + status.getValue());
+        String s = "#TotalStatusPlayer(";
+        s += player.playerName+",";
+        s += status.getValue() + ",";
+        s += player.damage + ",";
+        s += player.untappedCoin + ",";
+        s += player.totalCoin + ",";
+        s += player.deck.getCardExpiried() + ",";
+        s += player.cardInHand.size() + ",";
+        for (int i = 0; i < player.cardInHand.size(); i++) {
+            s += player.cardInHand.get(i).name + ",";
         }
-        s+=")";
+        s += ")";
         output.println(s);
     }
 

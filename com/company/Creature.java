@@ -220,7 +220,7 @@ public class Creature extends Card {
     void heal(int dmg) {
         damage -= dmg;
         if (damage < 0) damage = 0;
-        owner.owner.sendBoth("#TakeCreatureDamage("+owner.playerName+","+owner.getNumberOfCreature(this)+","+dmg+","+"0)");
+        owner.owner.sendBoth("#TakeCreatureDamage("+owner.playerName+","+owner.getNumberOfCreature(this)+","+(-dmg)+")");
     }
 
     void fightPlayer(Player second) {
@@ -295,7 +295,7 @@ public class Creature extends Card {
             if ((effects.getVulnerability())) dmg++;
 
             damage += dmg;
-            owner.owner.sendBoth("#TakeCreatureDamage("+owner.playerName+","+owner.getNumberOfCreature(this)+","+dmg+","+"1)");
+            owner.owner.sendBoth("#TakeCreatureDamage("+owner.playerName+","+owner.getNumberOfCreature(this)+","+dmg+")");
 
             takedDamageThisTurn = true;
 
