@@ -72,13 +72,13 @@ class Gamer extends Thread {
     }
 
     void printToView(int n, Color c, String txt) {//Depricated
-       // sendBoth("#Message(" + n + "," + txt + ")");
         output.println("#Message(" + n + "," + txt + ")");
         System.out.println(txt);
     }
 
     void setPlayerGameStatus(MyFunction.PlayerStatus _status) {
         status = _status;
+        output.println("#PlayerStatus("+status.getValue() + ")");
     }
 
     void sendBoth(String message) {

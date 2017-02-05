@@ -96,7 +96,7 @@ public class Creature extends Card {
             if (poison<=p)
             poison=p;
             //#TakeCreatureEffect(Player, CreatureNumOnBoard,Effect,EffectCount)
-            owner.owner.sendBoth("TakeCreatureEffect("+owner.name+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.poison.getValue()+","+p+")");
+            owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.poison.getValue()+","+p+")");
         }
     }
 

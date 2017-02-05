@@ -1,9 +1,10 @@
 package com.company;
 
 import java.awt.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.ListIterator;
 
-import static com.company.MyFunction.*;
+import static com.company.MyFunction.ActivatedAbility;
 import static com.company.MyFunction.ActivatedAbility.WhatAbility.*;
 
 /**
@@ -34,51 +35,53 @@ public class Player extends Card {
     //
     private static int tempX;//For card with X, for correct minus cost
 
-    void addCreatureToList(Creature c){
+    void addCreatureToList(Creature c) {
         creatures.add(c);
-        owner.sendBoth("#PutCreatureToBoard("+playerName+","+c.name+")");
+        owner.sendBoth("#PutCreatureToBoard(" + playerName + "," + c.name + ")");
         owner.sendStatus();
         owner.opponent.sendStatus();
     }
-    void removeCreatureFromList(Creature c){
-       owner.sendBoth("#DieCreature("+ playerName+","+getNumberOfCreature(c)+")");
-       creatures.remove(c);
+
+    void removeCreatureFromList(Creature c) {
+        owner.sendBoth("#DieCreature(" + playerName + "," + getNumberOfCreature(c) + ")");
+        creatures.remove(c);
     }
 
-    void addCardToHand(Card c){
+    void addCardToHand(Card c) {
         cardInHand.add(c);
-        owner.output.println("#AddCardToHand("+c.name+")");
+        owner.output.println("#AddCardToHand(" + c.name + ")");
     }
 
-    void addCardToGraveyard(Card c){
+    void addCardToGraveyard(Card c) {
         graveyard.add(c);
-        owner.sendBoth("#AddCardToGraveyard("+playerName+","+c.name+")");
+        owner.sendBoth("#AddCardToGraveyard(" + playerName + "," + c.name + ")");
     }
 
     void removeCardFromGraveyard(Card c) {
         graveyard.remove(c);
-        owner.sendBoth("#RemoveCardFromGraveyard("+playerName+","+c.name+")");
-    }
-    void removeCardFromHand(Card c){
-        cardInHand.remove(c);
-        owner.sendBoth("#RemoveCardFromHand("+playerName+","+c.name+")");
+        owner.sendBoth("#RemoveCardFromGraveyard(" + playerName + "," + c.name + ")");
     }
 
-    void removeCardFromHand(int n){
+    void removeCardFromHand(Card c) {
+        cardInHand.remove(c);
+        owner.sendBoth("#RemoveCardFromHand(" + playerName + "," + c.name + ")");
+    }
+
+    void removeCardFromHand(int n) {
         cardInHand.remove(n);
     }
 
-    int getNumberOfCreature(Creature _cr){
+    int getNumberOfCreature(Creature _cr) {
         return creatures.indexOf(_cr);
     }
 
-    void setNumberPlayer(int _n){
-      numberPlayer=_n;
+    void setNumberPlayer(int _n) {
+        numberPlayer = _n;
     }
 
     Player(Gamer _owner, Card _card, Deck _deck, String _playerName) {
         super(0, _card.name, _card.creatureType, 1, 0, _card.targetType, _card.tapTargetType, _card.text, 0, _card.hp);
-        owner=_owner;
+        owner = _owner;
         deck = _deck;
         isTapped = false;
         playerName = _playerName;
@@ -91,15 +94,15 @@ public class Player extends Card {
         equpiment[3] = null;
     }
 
-    Player(Gamer _owner,Deck _deck, String _heroName, String _playerName, int _hp) {
+    Player(Gamer _owner, Deck _deck, String _heroName, String _playerName, int _hp) {
         super(0, _heroName, "", 1, 0, 0, 0, "", 0, _hp);
-        owner=_owner;
+        owner = _owner;
         deck = _deck;
         isTapped = false;
         playerName = _playerName;
         cardInHand = new ArrayList<>();
         graveyard = new ArrayList<>();
-      //  numberPlayer = _n;
+        //  numberPlayer = _n;
         equpiment = new Equpiment[4];
         equpiment[0] = null;
         equpiment[1] = null;
@@ -123,7 +126,8 @@ public class Player extends Card {
             for (int i = owner.opponent.player.creatures.size() - 1; i >= 0; i--)
                 owner.opponent.player.creatures.get(i).effects.EOT();
         }
-        owner.opponent.player.newTurn();
+
+        owner.sendStatus();
     }
 
     ArrayList<Creature> diedCreatureOnBoard() {
@@ -158,14 +162,9 @@ public class Player extends Card {
             if (cr != null && crDied.size() > 0 && !cr.activatedAbilityPlayed) {
                 System.out.println("Падальщик " + playerName);
                 //CHECK EXIST TARGET
-                if (MyFunction.canTargetComplex(this,cr)) {
-
-                    if (numberPlayer == 0) {
-                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
-                    } else {
-                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
-                    }
-
+                if (MyFunction.canTargetComplex(this, cr)) {
+                    owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
+                    owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
                     ActivatedAbility.creature = cr;
                     ActivatedAbility.whatAbility = onOtherDeathPlayed;
                     //pause until player choice target.
@@ -191,14 +190,10 @@ public class Player extends Card {
             }
             if (tmp.text.contains("Гибельт:") && !tmp.effects.deathPlayed) {
                 //CHECK EXIST TARGET
-                if (MyFunction.canTargetComplex(this,tmp)) {
-                    if (numberPlayer == 0) {
-                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
-                    } else {
-                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
-                    }
-
-                    ActivatedAbility.creature = new Creature(tmp);
+                if (MyFunction.canTargetComplex(this, tmp)) {
+                    owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
+                    owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
+                    ActivatedAbility.creature = tmp;
                     ActivatedAbility.whatAbility = onDeathPlayed;
                     //pause until player choice target.
                     owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
@@ -216,12 +211,8 @@ public class Player extends Card {
                     //Check n card
                     int n = cardInHand.size();
                     if (n > 1) {
-                        if (numberPlayer == 0) {
-                           owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
-                        } else {
-                            owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
-                        }
-
+                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
+                        owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
                         ActivatedAbility.creature = new Creature(tmp);
                         ActivatedAbility.whatAbility = ActivatedAbility.WhatAbility.toHandAbility;
                         //pause until player choice target.
@@ -262,11 +253,8 @@ public class Player extends Card {
                 if (creatures.size() > 1 && !tmp.effects.upkeepPlayed) {
                     System.out.println("Амбрадоринг " + playerName);
                     //CHECK EXIST TARGET
-                    if (numberPlayer == 0) {
                         owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
-                    } else {
-                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
-                    }
+                        owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
 
                     ActivatedAbility.creature = tmp;
                     ActivatedAbility.whatAbility = onUpkeepPlayed;
@@ -299,8 +287,9 @@ public class Player extends Card {
             }
             if (tmp.text.contains("Наймт:") && !tmp.effects.battlecryPlayed && tmp.getTougness() > tmp.damage)
                 //CHECK EXIST TARGET
-                if (MyFunction.canTargetComplex(this,tmp)) {
-                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
+                if (MyFunction.canTargetComplex(this, tmp)) {
+                    owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
+                    owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
                     ActivatedAbility.creature = tmp;
                     ActivatedAbility.whatAbility = nothing;
                     //pause until player choice target.
@@ -324,9 +313,12 @@ public class Player extends Card {
     }
 
     void newTurn() {
-        owner.board.whichTurn=playerName;
+        owner.board.whichTurn = playerName;
         owner.board.turnCount++;
+        owner.opponent.board.turnCount++;
         owner.printToView(0, "Ход номер " + owner.board.turnCount + ", игрок " + playerName);
+        owner.opponent.printToView(0, "Ход номер " + owner.board.turnCount + ", игрок " + playerName);
+
         if (numberPlayer == 0)
             owner.printToView(1, Color.GREEN, "Ваш ход");
         else owner.printToView(1, Color.RED, "Ход противника");
@@ -378,7 +370,7 @@ public class Player extends Card {
             //poison, here creature may die, check it for after.
             if ((creatures.get(i).effects.poison != 0) && (!creatures.get(i).text.contains("Защита от отравления.")))
                 creatures.get(i).takeDamage(creatures.get(i).effects.poison, Creature.DamageSource.poison);
-          //  owner.gameQueue.responseAllQueue();//poison queue
+            //  owner.gameQueue.responseAllQueue();//poison queue
         }
 
         //Draw
@@ -393,7 +385,7 @@ public class Player extends Card {
         _card.text = _card.text.replace("ХХХ", String.valueOf(x));
         System.out.println("text after replace:" + _card.text);
         tempX = x;
-        playCard(num,_card, _targetCreature, _targetPlayer);
+        playCard(num, _card, _targetCreature, _targetPlayer);
         tempX = 0;
     }
 
@@ -414,20 +406,21 @@ public class Player extends Card {
                 //check target
                 if (_targetPlayer != null) {
                     _card.playOnPlayer(this, _targetPlayer);
-                    if (_targetPlayer==this)
-                    owner.sendBoth("#PlaySpell("+playerName+","+_card.name+",0,-1)");
-                    else owner.sendBoth("#PlaySpell("+playerName+","+_card.name+",1,-1)");
+                    if (_targetPlayer == this)
+                        owner.sendBoth("#PlaySpell(" + playerName + "," + _card.name + ",0,-1)");
+                    else owner.sendBoth("#PlaySpell(" + playerName + "," + _card.name + ",1,-1)");
                 }
                 if (_targetCreature != null) {
                     _card.playOnCreature(this, _targetCreature);
-                    if (_targetCreature.owner==this)
-                        owner.sendBoth("#PlaySpell("+playerName+","+_card.name+",0,"+getNumberOfCreature(_targetCreature)+")");
-                    else owner.sendBoth("#PlaySpell("+playerName+","+_card.name+",1,"+owner.opponent.player.getNumberOfCreature(_targetCreature)+")");
+                    if (_targetCreature.owner == this)
+                        owner.sendBoth("#PlaySpell(" + playerName + "," + _card.name + ",0," + getNumberOfCreature(_targetCreature) + ")");
+                    else
+                        owner.sendBoth("#PlaySpell(" + playerName + "," + _card.name + ",1," + owner.opponent.player.getNumberOfCreature(_targetCreature) + ")");
                 }
                 //No target
                 if ((_targetCreature == null) && (_targetPlayer == null)) {
                     _card.playNoTarget(this);
-                    owner.sendBoth("#PlaySpell("+playerName+","+_card.name+",-1,-1)");
+                    owner.sendBoth("#PlaySpell(" + playerName + "," + _card.name + ",-1,-1)");
                 }
                 //and after play
                 Board.putCardToGraveyard(_card, this);
@@ -457,7 +450,7 @@ public class Player extends Card {
             owner.printToView(0, "Не хватает монет.");
         }
 
-      //  owner.gameQueue.responseAllQueue();
+        //  owner.gameQueue.responseAllQueue();
     }
 
     void drawCard() {
@@ -507,19 +500,19 @@ public class Player extends Card {
         }
         if (hp > damage + dmg) {
             damage += dmg;
-            if (dmg != 0){
-                owner.sendBoth("#TakeHeroDamage("+playerName+","+dmg+")");
+            if (dmg != 0) {
+                owner.sendBoth("#TakeHeroDamage(" + playerName + "," + dmg + ")");
                 owner.printToView(0, this.name + " получет " + dmg + " урона.");
             }
         } else {//Not here, because it may be in queue and at end of queue restore status
-            if (this.numberPlayer==0){
+            if (this.numberPlayer == 0) {
                 System.out.println("You lose game.");
-                owner.sendBoth("#LoseGame("+playerName+")");
+                owner.sendBoth("#LoseGame(" + playerName + ")");
                 owner.printToView(2, Color.RED, "Вы проиграли игру.");
                 owner.setPlayerGameStatus(MyFunction.PlayerStatus.endGame);
             } else {
                 System.out.println("You win game.");
-                owner.sendBoth("#WinGame("+playerName+")");
+                owner.sendBoth("#WinGame(" + playerName + ")");
                 owner.printToView(2, Color.GREEN, "Вы выиграли игру.");
                 owner.setPlayerGameStatus(MyFunction.PlayerStatus.endGame);
             }
@@ -532,7 +525,7 @@ public class Player extends Card {
         } else {
             damage -= dmg;
             if (damage < 0) damage = 0;
-            owner.sendBoth("#TakeHeroDamage("+playerName+","+dmg+",0)");
+            owner.sendBoth("#TakeHeroDamage(" + playerName + "," + dmg + ",0)");
         }
     }
 
@@ -540,14 +533,14 @@ public class Player extends Card {
         String txt = this.text.substring(this.text.indexOf("ТАП:") + "ТАП:0".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАП:")) + 1);
         System.out.println("ТАП HERO: " + txt);
         tap();
-        Card.ability(owner,this, this, null, null, txt);
+        Card.ability(owner, this, this, null, null, txt);
     }
 
     void ability(Creature _cr, Player _pl) {
         String txt = this.text.substring(this.text.indexOf("ТАПТ: ") + "ТАПТ: ".length() + 1, this.text.indexOf(".", this.text.indexOf("ТАПТ: ") + 1));
         System.out.println("ТАПТ HERO: " + txt);
         tap();
-        Card.ability(owner,this, this, _cr, _pl, txt);
+        Card.ability(owner, this, this, _cr, _pl, txt);
     }
 
     public Card searchInGraveyard(String name) {
@@ -557,13 +550,14 @@ public class Player extends Card {
         return null;
     }
 
-    public void tap(){
+    public void tap() {
         //TODO #Tap
-        owner.sendBoth("#TapPlayer("+playerName+",1)");
-        isTapped=true;
+        owner.sendBoth("#TapPlayer(" + playerName + ",1)");
+        isTapped = true;
     }
-    public void untap(){
-        owner.sendBoth("#TapPlayer("+playerName+",0)");
-        isTapped=false;
+
+    public void untap() {
+        owner.sendBoth("#TapPlayer(" + playerName + ",0)");
+        isTapped = false;
     }
 }

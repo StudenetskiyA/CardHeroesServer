@@ -57,6 +57,7 @@ public class GameQueue
 
     public void responseAllQueue(){
        gamer.memPlayerStatus=gamer.status;
+       gamer.opponent.memPlayerStatus=gamer.opponent.status;
        System.out.println("Queue save status for "+gamer.name+" at "+gamer.status.toString());
         while (size() != 0) {
             GameQueue.QueueEvent event = pull();
@@ -85,6 +86,7 @@ public class GameQueue
         }
         System.out.println("complite queue response");
         gamer.status=gamer.memPlayerStatus;
+        gamer.opponent.status=gamer.opponent.memPlayerStatus;
     }
 
     public QueueEvent pull() {
