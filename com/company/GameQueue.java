@@ -60,7 +60,6 @@ public class GameQueue
        System.out.println("Queue save status for "+gamer.name+" at "+gamer.status.toString());
         while (size() != 0) {
             GameQueue.QueueEvent event = pull();
-           // Main.readyQueue=false;
             System.out.println("next queue response");
             if (event.whatToDo.equals("Die")) {
                 if (event.targetCr.owner.creatures.contains(event.targetCr)) {
@@ -86,12 +85,7 @@ public class GameQueue
         }
         System.out.println("complite queue response");
         gamer.status=gamer.memPlayerStatus;
-//        synchronized (Main.queueMonitor) {
-//            readyQueue = true;
-//            Main.queueMonitor.notifyAll();
-//        }
     }
-
 
     public QueueEvent pull() {
         // Если у нас нет элементов, то возвращаем null

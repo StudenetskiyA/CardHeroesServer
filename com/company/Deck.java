@@ -21,7 +21,7 @@ public class Deck {
     }
 
     public Card searchCard(String name){
-        for (int i=0;i<=cards.size();i++){
+        for (int i=0;i<cards.size();i++){
             if (cards.get(i).name.equals(name)) return cards.get(i);
         }
         return null;

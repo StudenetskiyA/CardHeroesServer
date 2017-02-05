@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ThreadLocalRandom;
 
 import static com.company.Main.CLIENT_VERSION;
+import static com.company.Main.COIN_START;
 import static com.company.Main.randomNum;
 
 public class Main {
@@ -65,12 +66,14 @@ class Gamer extends Thread {
      String choiceXtext;
 
     void printToView(int n, String txt) {
-        sendBoth("#Message(" + n + "," + txt + ")");
+       // sendBoth("#Message(" + n + "," + txt + ")");
+        output.println("#Message(" + n + "," + txt + ")");
         System.out.println(txt);
     }
 
-    void printToView(int n, Color c, String txt) {
-        sendBoth("#Message(" + n + "," + txt + ")");
+    void printToView(int n, Color c, String txt) {//Depricated
+       // sendBoth("#Message(" + n + "," + txt + ")");
+        output.println("#Message(" + n + "," + txt + ")");
         System.out.println(txt);
     }
 
@@ -188,14 +191,8 @@ class Gamer extends Thread {
             output.println("ok");
 
             //Get shuffled deck and send to opponent
-            opponent.output.println("Your opponent " + name + ", play " + deckName + " deck.");
-            opponent.output.println("$OPPONENTCONNECTED(" + name + "," + deckName + ")");
-            System.out.println("Sen opCon for " + opponent.name);
-            for (String card : deckList) {
-                //May be send with command? For safety.
-                opponent.output.println(card);
-            }
-            opponent.output.println("$ENDDECK");
+            opponent.output.println("Your opponent " + name + ", play " + deckList.get(0) + " hero.");
+            opponent.output.println("$OPPONENTCONNECTED(" + name + "," + deckList.get(0) +","+COIN_START+ ")");
 
             //Begin game
             player.deck.cards.remove(0);//Remove hero from deck
@@ -300,6 +297,21 @@ class Gamer extends Thread {
 
     }
 
+
+    void sendChoiceSearch(String message){
+        //#ChoiceSearchInDeck(PlayerName,CardType,CardColor,CreatureType,CardCost,CardCostExactly,Message).
+        System.out.println("Sending choice search to " + player.playerName);
+        String s = "#ChoiceSearchInDeck(";
+        s+=player.playerName+",";
+        s+=choiceXtype+",";
+        s+=choiceXcolor+",";
+        s+=choiceXcreatureType+",";
+        s+=choiceXcost+",";
+        s+=choiceXcostExactly+",";
+        s+=message+")";
+        output.println(s);
+    }
+
     void sendChoiceTarget(String message){
         System.out.println("Sending choice target to " + player.playerName + ", whatAbility= " + MyFunction.ActivatedAbility.whatAbility.getValue());
         String s = "#ChoiceTarget(";
@@ -324,6 +336,7 @@ class Gamer extends Thread {
         s += player.untappedCoin + ",";
         s += player.totalCoin + ",";
         s += player.deck.getCardExpiried() + ",";
+        s += player.owner.opponent.player.cardInHand.size()+",";
         s += player.cardInHand.size() + ",";
         for (int i = 0; i < player.cardInHand.size(); i++) {
             s += player.cardInHand.get(i).name + ",";

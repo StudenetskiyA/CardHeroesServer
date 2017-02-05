@@ -63,6 +63,30 @@ public class MyFunction {
         return rtrn;
     }
 
+    enum Effect{
+        poison(1), vulnerability(2);
+
+        private final int value;
+
+        Effect(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public static Effect fromInteger(int x) {
+            switch(x) {
+                case 1:
+                    return poison;
+                case 2:
+                    return vulnerability;
+            }
+            return null;
+        }
+    }
+
     enum Target {myPlayer,myCreature,enemyPlayer,enemyCreature}
 
     enum PlayerStatus {

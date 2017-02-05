@@ -344,10 +344,10 @@ class Card {
             if (_whis.playerName.equals(owner.name)) {
                 int type = MyFunction.getNumericAfterText(txt, "Поиск ТС ");
                 owner.setPlayerGameStatus(MyFunction.PlayerStatus.searchX);
-              //  Main.choiceXtype = type;
-              //  Main.choiceXcost=0;
-              //  Main.choiceXcostExactly = MyFunction.getNumericAfterText(txt, "Поиск ТС " + type + " ");
-              //  System.out.println("search cost = " + Main.choiceXcostExactly);
+                owner.choiceXtype = type;
+                owner.choiceXcost=0;
+                owner.choiceXcostExactly = MyFunction.getNumericAfterText(txt, "Поиск ТС " + type + " ");
+                owner.sendChoiceSearch(_cr.name+" ищет в колоде.");
                 System.out.println("pause");
                 synchronized (owner.cretureDiedMonitor) {
                     try {
@@ -514,19 +514,15 @@ class Card {
         if (txt.contains("Отравить+ выбранное существо на ")) {
             int dmg = MyFunction.getNumericAfterText(txt, "Отравить+ выбранное существо на ");
             if (_cr.effects.poison != 0) {
-                _cr.effects.poison++;
-                owner.printToView(0, "У " + _cr.name + " усилено отравление на " + dmg + ".");
+                _cr.effects.takePoison(_cr.effects.poison+dmg);
             } else {
                 if (_cr.effects.poison <= dmg)
-                    _cr.effects.poison = dmg;
-                owner.printToView(0, _who.name + " отравил " + _cr.name + " на " + dmg + ".");
+                    _cr.effects.takePoison(dmg);
             }
         }
         if (txt.contains("Отравить выбранное существо на ")) {
             int dmg = MyFunction.getNumericAfterText(txt, "Отравить выбранное существо на ");
-            if (_cr.effects.poison <= dmg)
-                _cr.effects.poison = dmg;
-            owner.printToView(0, _cr.name + " получил отравление на " + dmg + ".");
+            _cr.effects.takePoison(dmg);
         }
         if (txt.contains(("Излечить вашего героя на "))) {
             int dmg = MyFunction.getNumericAfterText(txt, "Излечить вашего героя на ");

@@ -91,6 +91,13 @@ public class Creature extends Card {
         int getBonusTougness(){
             return bonusTougness;
         }
+
+        void takePoison(int p){
+            if (poison<=p)
+            poison=p;
+            //#TakeCreatureEffect(Player, CreatureNumOnBoard,Effect,EffectCount)
+            owner.owner.sendBoth("TakeCreatureEffect("+owner.name+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.poison.getValue()+","+p+")");
+        }
     }
 
     int getBonusOrMinusTougness(){

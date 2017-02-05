@@ -37,9 +37,7 @@ public class Board {
     void addCreatureToBoard(Card _creature, Player _player) {
         Creature summonCreature = new Creature(_creature, _player);
 
-      //  int np = _player.numberPlayer;
         _player.addCreatureToList(summonCreature);
-
         _player.owner.gameQueue.push(new GameQueue.QueueEvent("Summon",summonCreature,0));
 
         if (summonCreature.text.contains("Уникальность.")) {

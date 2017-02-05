@@ -37,14 +37,17 @@ public class Player extends Card {
     void addCreatureToList(Creature c){
         creatures.add(c);
         owner.sendBoth("#PutCreatureToBoard("+playerName+","+c.name+")");
+        owner.sendStatus();
+        owner.opponent.sendStatus();
     }
     void removeCreatureFromList(Creature c){
        owner.sendBoth("#DieCreature("+ playerName+","+getNumberOfCreature(c)+")");
        creatures.remove(c);
     }
+
     void addCardToHand(Card c){
         cardInHand.add(c);
-        owner.sendBoth("#AddCardToHand("+playerName+","+c.name+")");
+        owner.output.println("#AddCardToHand("+c.name+")");
     }
 
     void addCardToGraveyard(Card c){
@@ -64,7 +67,6 @@ public class Player extends Card {
     void removeCardFromHand(int n){
         cardInHand.remove(n);
     }
-
 
     int getNumberOfCreature(Creature _cr){
         return creatures.indexOf(_cr);
@@ -88,7 +90,6 @@ public class Player extends Card {
         equpiment[2] = null;
         equpiment[3] = null;
     }
-
 
     Player(Gamer _owner,Deck _deck, String _heroName, String _playerName, int _hp) {
         super(0, _heroName, "", 1, 0, 0, 0, "", 0, _hp);
@@ -299,11 +300,7 @@ public class Player extends Card {
             if (tmp.text.contains("Наймт:") && !tmp.effects.battlecryPlayed && tmp.getTougness() > tmp.damage)
                 //CHECK EXIST TARGET
                 if (MyFunction.canTargetComplex(this,tmp)) {
-                   // if (numberPlayer == 0) {
                         owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
-//                    } else {
-//                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
-//                    }
                     ActivatedAbility.creature = tmp;
                     ActivatedAbility.whatAbility = nothing;
                     //pause until player choice target.
