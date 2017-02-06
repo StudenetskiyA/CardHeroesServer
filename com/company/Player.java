@@ -75,6 +75,14 @@ public class Player extends Card {
         return creatures.indexOf(_cr);
     }
 
+    int getNumberOfAlivedCreatures(){
+        int a=0;
+        for (Creature c:creatures){
+            if (!c.isDie()) a++;
+        }
+        return a;
+    }
+
     void setNumberPlayer(int _n) {
         numberPlayer = _n;
     }
@@ -170,6 +178,7 @@ public class Player extends Card {
                     //pause until player choice target.
                     owner.sendChoiceTarget(cr.name + " просит выбрать цель.");
                     System.out.println("pause");
+                    ActivatedAbility.creature.activatedAbilityPlayed = true;//if you remove it, may play any times at turn.
                     synchronized (owner.cretureDiedMonitor) {
                         try {
                             owner.cretureDiedMonitor.wait();
@@ -178,7 +187,6 @@ public class Player extends Card {
                         }
                     }
                     System.out.println("resume");
-                    ActivatedAbility.creature.activatedAbilityPlayed = true;//if you remove it, may play any times at turn.
                 } else {
                     owner.printToView(0, "Целей для " + cr.name + " нет.");
                     cr.activatedAbilityPlayed = true;//If you can't target, after you can't play this ability
@@ -261,6 +269,7 @@ public class Player extends Card {
                     //pause until player choice target.
                     owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
                     System.out.println("pause");
+                    tmp.effects.upkeepPlayed = true;
                     synchronized (owner.cretureDiedMonitor) {
                         try {
                             owner.cretureDiedMonitor.wait();
@@ -269,7 +278,6 @@ public class Player extends Card {
                         }
                     }
                     System.out.println("resume");
-                    tmp.effects.upkeepPlayed = true;
                     break;//Upkeep played creature by creature.
                 }
         }
@@ -294,6 +302,7 @@ public class Player extends Card {
                     ActivatedAbility.whatAbility = nothing;
                     //pause until player choice target.
                     owner.sendChoiceTarget(tmp.name + " просит выбрать цель.");
+                    tmp.effects.battlecryPlayed = true;
                     System.out.println("pause");
                     synchronized (owner.cretureDiedMonitor) {
                         try {
@@ -303,7 +312,6 @@ public class Player extends Card {
                         }
                     }
                     System.out.println("resume");
-                    tmp.effects.battlecryPlayed = true;
                     break;//Cry played creature by creature.
                 } else {
                     owner.printToView(0, "Целей для " + tmp.name + " нет.");

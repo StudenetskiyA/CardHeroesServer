@@ -56,10 +56,12 @@ public class GameQueue
     }
 
     public void responseAllQueue(){
+       // boolean someFound=false;
        gamer.memPlayerStatus=gamer.status;
        gamer.opponent.memPlayerStatus=gamer.opponent.status;
        System.out.println("Queue save status for "+gamer.name+" at "+gamer.status.toString());
         while (size() != 0) {
+         //   someFound=true;
             GameQueue.QueueEvent event = pull();
             System.out.println("next queue response");
             if (event.whatToDo.equals("Die")) {
@@ -85,8 +87,10 @@ public class GameQueue
             }
         }
         System.out.println("complite queue response");
-        gamer.status=gamer.memPlayerStatus;
-        gamer.opponent.status=gamer.opponent.memPlayerStatus;
+      //  if (someFound) {
+            gamer.status = gamer.memPlayerStatus;
+            gamer.opponent.status = gamer.opponent.memPlayerStatus;
+       // }
     }
 
     public QueueEvent pull() {

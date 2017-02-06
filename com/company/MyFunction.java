@@ -146,8 +146,8 @@ public class MyFunction {
 
     public static boolean canTargetComplex(Player pl, Creature cr){
         boolean canTarget=false;
-        if (pl.creatures.size() > 0 && MyFunction.canTarget(MyFunction.Target.myCreature,cr.targetType)) canTarget=true;
-        if (pl.creatures.size() > 0 && MyFunction.canTarget(MyFunction.Target.enemyCreature,cr.targetType)) canTarget=true;
+        if (pl.getNumberOfAlivedCreatures() > 0 && MyFunction.canTarget(MyFunction.Target.myCreature,cr.targetType)) canTarget=true;
+        if (pl.owner.opponent.player.getNumberOfAlivedCreatures() > 0 && MyFunction.canTarget(MyFunction.Target.enemyCreature,cr.targetType)) canTarget=true;
         if (MyFunction.canTarget(MyFunction.Target.enemyPlayer,cr.targetType)) canTarget=true;//Both players always stay on board
         if (MyFunction.canTarget(MyFunction.Target.myPlayer,cr.targetType)) canTarget=true;
         return canTarget;
