@@ -349,10 +349,10 @@ public class Player extends Card {
             Creature p = temp.next();
             boolean isOnBoard = owner.opponent.player.creatures.contains(p);
             if (p.text.contains("В начале хода") || p.text.contains("В начале противника хода") && !p.isDie() && isOnBoard)
-                owner.gameQueue.push(new GameQueue.QueueEvent("Upkeep", p, 0));
+                owner.opponent.gameQueue.push(new GameQueue.QueueEvent("Upkeep", p, 0));
             if (p.effects.turnToDie ==  0 && !p.isDie() && isOnBoard) {
                 p.effects.takeDieEffect();
-                owner.gameQueue.push(new GameQueue.QueueEvent("Die", p, 0));
+                owner.opponent.gameQueue.push(new GameQueue.QueueEvent("Die", p, 0));
             }
             while (owner.gameQueue.size() != 0 || owner.opponent.gameQueue.size() != 0) {
                 owner.opponent.gameQueue.responseAllQueue();
@@ -360,7 +360,8 @@ public class Player extends Card {
             }
         }
         //And for my creatures
-        temp = creatures.listIterator();
+        ArrayList<Creature> crtCopy = new ArrayList<>(creatures);
+        temp = crtCopy.listIterator();
         while (temp.hasNext()) {
             Creature p = temp.next();
             boolean isOnBoard = creatures.contains(p);
