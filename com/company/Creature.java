@@ -355,7 +355,7 @@ public class Creature extends Card {
 
     void returnToHand() {
         owner.owner.sendBoth("#ReturnToHand("+owner.playerName+","+owner.getNumberOfCreature(this)+")");
-        owner.owner.sendBoth("#AddCardToHand("+owner.playerName+","+this.name+")");
+        owner.owner.output.println("#AddCardToHand("+this.name+")");
         removeCreatureFromPlayerBoard();
         owner.cardInHand.add(0,this);
     }

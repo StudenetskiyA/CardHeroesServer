@@ -183,6 +183,7 @@ public class ResponseClientMessage extends Thread {
             }
         } else if (fromServer.contains("$ATTACKPLAYER(")) {//$ATTACKPLAYER(Player, Creature)
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
+            //TODO Check exist and can attack. Client may lie!
             gamer.printToView(0, player.creatures.get(Integer.parseInt(parameter.get(1))).name + " атакует " + gamer.opponent.player.name);
             player.creatures.get(Integer.parseInt(parameter.get(1))).attackPlayer(gamer.opponent.player);
         } else if (fromServer.contains("$ATTACKCREATURE(")) {//$ATTACKREATURE(Player, Creature, TargetCreature)

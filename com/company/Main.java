@@ -324,7 +324,8 @@ class Gamer extends Thread {
     }
 
     void sendUntapAll(){
-        output.println("#UntapAll()");
+        output.println("#UntapAll("+this.name+")");
+        opponent.output.println("#UntapAll("+this.name+")");
     }
 
     void sendStatus() {
