@@ -75,9 +75,9 @@ public class Player extends Card {
         return creatures.indexOf(_cr);
     }
 
-    int getNumberOfAlivedCreatures(){
-        int a=0;
-        for (Creature c:creatures){
+    int getNumberOfAlivedCreatures() {
+        int a = 0;
+        for (Creature c : creatures) {
             if (!c.isDie()) a++;
         }
         return a;
@@ -126,15 +126,14 @@ public class Player extends Card {
         if (untappedCoin > totalCoin) untappedCoin = totalCoin;
         temporaryCoin = 0;
         //Creature effects until eot
-        if (creatures.isEmpty()) {
+        if (!creatures.isEmpty()) {
             for (int i = creatures.size() - 1; i >= 0; i--)
                 creatures.get(i).effects.EOT();
         }
-        if (owner.opponent.player.creatures.isEmpty()) {
+        if (!owner.opponent.player.creatures.isEmpty()) {
             for (int i = owner.opponent.player.creatures.size() - 1; i >= 0; i--)
                 owner.opponent.player.creatures.get(i).effects.EOT();
         }
-
         owner.sendStatus();
     }
 
@@ -150,9 +149,9 @@ public class Player extends Card {
 
     Creature searchWhenOtherDieAbility(Creature cr) {
         for (Creature p : creatures) {
-            if (p.text.contains("При гибели другого вашего существа:") && p != cr && p.getTougness() > p.damage)
+            if (p.text.contains("При гибели другого вашего существа:") && p != cr && !p.isDie())
                 return p;
-            if (p.text.contains("При гибели в ваш ход другого вашего существа:") && p.owner.playerName.equals(owner.board.whichTurn) && p != cr && p.getTougness() > p.damage)
+            if (p.text.contains("При гибели в ваш ход другого вашего существа:") && p.owner.playerName.equals(owner.board.whichTurn) && p != cr && !p.isDie())
                 return p;
         }
         return null;
@@ -261,8 +260,8 @@ public class Player extends Card {
                 if (creatures.size() > 1 && !tmp.effects.upkeepPlayed) {
                     System.out.println("Амбрадоринг " + playerName);
                     //CHECK EXIST TARGET
-                        owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
-                        owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
+                    owner.setPlayerGameStatus(MyFunction.PlayerStatus.choiceTarget);
+                    owner.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyChoiceTarget);
 
                     ActivatedAbility.creature = tmp;
                     ActivatedAbility.whatAbility = onUpkeepPlayed;
@@ -322,17 +321,16 @@ public class Player extends Card {
 
     void newTurn() {
         owner.board.whichTurn = playerName;
+        owner.opponent.board.whichTurn = playerName;
         owner.board.turnCount++;
         owner.opponent.board.turnCount++;
+
         owner.printToView(0, "Ход номер " + owner.board.turnCount + ", игрок " + playerName);
         owner.opponent.printToView(0, "Ход номер " + owner.board.turnCount + ", игрок " + playerName);
-
-        if (numberPlayer == 0)
-            owner.printToView(1, Color.GREEN, "Ваш ход");
-        else owner.printToView(1, Color.RED, "Ход противника");
+        owner.printToView(1, Color.GREEN, "Ваш ход");
+        owner.opponent.printToView(1, Color.RED, "Ход противника");
 
         //Tull-Bagar
-        //TODO FIX null
         if (this.equpiment[3] != null && this.equpiment[3].name.equals("Пустошь Тул-Багара")) {
             owner.printToView(0, "Пустошь Тул-Багара ранит всех героев.");
             this.takeDamage(1);
@@ -344,15 +342,44 @@ public class Player extends Card {
             owner.opponent.player.takeDamage(1);
         }
 
-        //Search for Ambrador
-        if (creatures.size() > 1) {
-            for (Creature p : creatures) {
-                if (p.text.contains("В начале хода") || p.text.contains("В начале вашего хода") && p.getTougness() > p.damage)
-                    owner.gameQueue.push(new GameQueue.QueueEvent("Upkeep", p, 0));
+        //Search for upkeep played effects
+
+        ListIterator<Creature> temp = owner.opponent.player.creatures.listIterator();
+        while (temp.hasNext()) {
+            Creature p = temp.next();
+            boolean isOnBoard = owner.opponent.player.creatures.contains(p);
+            if (p.text.contains("В начале хода") || p.text.contains("В начале противника хода") && !p.isDie() && isOnBoard)
+                owner.gameQueue.push(new GameQueue.QueueEvent("Upkeep", p, 0));
+            if (p.effects.turnToDie ==  0 && !p.isDie() && isOnBoard) {
+                p.effects.takeDieEffect();
+                owner.gameQueue.push(new GameQueue.QueueEvent("Die", p, 0));
+            }
+            while (owner.gameQueue.size() != 0 || owner.opponent.gameQueue.size() != 0) {
+                owner.opponent.gameQueue.responseAllQueue();
+                owner.gameQueue.responseAllQueue();
             }
         }
-        //Bogart and other
-        //owner.gameQueue.responseAllQueue();
+        //And for my creatures
+        temp = creatures.listIterator();
+        while (temp.hasNext()) {
+            Creature p = temp.next();
+            boolean isOnBoard = creatures.contains(p);
+            if (p.text.contains("В начале хода") || p.text.contains("В начале вашего хода") && !p.isDie() && isOnBoard) {
+                owner.gameQueue.push(new GameQueue.QueueEvent("Upkeep", p, 0));
+            }
+            if (p.effects.poison != 0 && !p.text.contains("Защита от отравления.") && !p.isDie() && isOnBoard) {
+                p.takeDamage(p.effects.poison, Creature.DamageSource.poison);
+                //It may push die to queue.
+            }
+            if (p.effects.turnToDie == 0 && !p.isDie() && isOnBoard) {
+                p.effects.takeDieEffect();
+                owner.gameQueue.push(new GameQueue.QueueEvent("Die", p, 0));
+            }
+            while (owner.gameQueue.size() != 0 || owner.opponent.gameQueue.size() != 0) {
+                owner.opponent.gameQueue.responseAllQueue();
+                owner.gameQueue.responseAllQueue();
+            }
+        }
 
         untap();
         //Get coin
@@ -375,10 +402,6 @@ public class Player extends Card {
             creatures.get(i).takedDamageThisTurn = false;
             creatures.get(i).attackThisTurn = false;
             creatures.get(i).blockThisTurn = false;
-            //poison, here creature may die, check it for after.
-            if ((creatures.get(i).effects.poison != 0) && (!creatures.get(i).text.contains("Защита от отравления.")))
-                creatures.get(i).takeDamage(creatures.get(i).effects.poison, Creature.DamageSource.poison);
-            //  owner.gameQueue.responseAllQueue();//poison queue
         }
 
         //Draw

@@ -580,11 +580,11 @@ class Card {
         }
         if (txt.contains(("Каждое другое существо погибает в конце хода противника."))) {//TODO Fix it with deathrattle
             for (int i = _whis.owner.opponent.player.creatures.size() - 1; i >= 0; i--) {
-                _whis.owner.opponent.player.creatures.get(i).effects.turnToDie = 2;
+                _whis.owner.opponent.player.creatures.get(i).effects.takeTurnToDie(2);
             }
             for (int i = _whis.creatures.size() - 1; i >= 0; i--) {
                 if (!_whis.creatures.get(i).name.equals("Богарт"))
-                    _whis.creatures.get(i).effects.turnToDie = 2;
+                    _whis.creatures.get(i).effects.takeTurnToDie(2);
             }
             owner.printToView(0, _who.name + " чумит весь стол!");
         }

@@ -64,7 +64,7 @@ public class MyFunction {
     }
 
     enum Effect{
-        poison(1), vulnerability(2);
+        poison(1), vulnerability(2), turnToDie(3), die(4);
 
         private final int value;
 
@@ -82,6 +82,10 @@ public class MyFunction {
                     return poison;
                 case 2:
                     return vulnerability;
+                case 3:
+                    return turnToDie;
+                case 4:
+                    return die;
             }
             return null;
         }

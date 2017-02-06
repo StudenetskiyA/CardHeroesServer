@@ -31,8 +31,6 @@ public class ResponseClientMessage extends Thread {
             System.out.println("End turn " + parameter.get(0));
             gamer.setPlayerGameStatus(MyFunction.PlayerStatus.EnemyTurn);
             gamer.opponent.setPlayerGameStatus(MyFunction.PlayerStatus.MyTurn);
-//            gamer.memPlayerStatus=gamer.status;
-//            gamer.opponent.memPlayerStatus=gamer.opponent.status;
             player.endTurn();
             gamer.opponent.sendUntapAll();
             gamer.opponent.player.newTurn();

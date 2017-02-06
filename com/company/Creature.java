@@ -27,6 +27,7 @@ public class Creature extends Card {
     public class Effects {
         Creature whis;
         String additionalText = "";
+        public boolean isDie = false;
         public int poison = 0;
         public int bonusPower = 0;
         public int bonusPowerUEOT = 0;
@@ -49,9 +50,11 @@ public class Creature extends Card {
             turnToDie--;
             bonusPowerUEOT = 0;
             if (cantAttackOrBlock < 0) cantAttackOrBlock = 0;
-            if (turnToDie == 0) {
-                owner.owner.gameQueue.push(new GameQueue.QueueEvent("Die", whis, 0));
-            }
+//            if (turnToDie == 0) {
+//                System.out.println("Plaque die!");
+//                effects.takeDieEffect();
+//                owner.owner.gameQueue.push(new GameQueue.QueueEvent("Die", whis, 0));
+//            }
             activatedAbilityPlayed = false;
         }
 
@@ -92,11 +95,26 @@ public class Creature extends Card {
             return bonusTougness;
         }
 
+        //#TakeCreatureEffect(Player, CreatureNumOnBoard,Effect,EffectCount)
         void takePoison(int p){
             if (poison<=p)
             poison=p;
-            //#TakeCreatureEffect(Player, CreatureNumOnBoard,Effect,EffectCount)
             owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.poison.getValue()+","+p+")");
+        }
+
+        void takeTurnToDie(int t){
+            turnToDie=t;
+            owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.turnToDie.getValue()+","+t+")");
+        }
+
+        void takeVulnerability(){
+            vulnerability=true;
+            owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.vulnerability.getValue()+","+0+")");
+        }
+
+        void takeDieEffect(){
+            isDie=true;
+            owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.die.getValue()+","+0+")");
         }
     }
 
@@ -217,9 +235,6 @@ public class Creature extends Card {
             owner.owner.printToView(0, this.name + " ударяет " + second.name + ".");
             second.takeDamage(this.getPower(), DamageSource.fight, second.haveRage());
         }
-
-        //Response queue
-//        owner.owner.gameQueue.responseAllQueue();
     }
 
     void heal(int dmg) {
@@ -351,6 +366,7 @@ public class Creature extends Card {
     }
 
     boolean isDie() {
+        if (effects.isDie) return true;
         return (getTougness() <= damage);//And other method to die!
     }
 
