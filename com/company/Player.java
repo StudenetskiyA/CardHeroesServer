@@ -236,7 +236,7 @@ public class Player extends Card {
                     }
                     if (n == 1) {
                         owner.printToView(0, tmp.name + " заставляет сбросить " + cardInHand.get(0));
-                        Board.putCardToGraveyard(cardInHand.get(0), this);
+                        this.addCardToGraveyard(cardInHand.get(0));
                         removeCardFromHand(cardInHand.get(0));
                     }
                     if (n == 0) {
@@ -435,7 +435,8 @@ public class Player extends Card {
                 //release text on spell
                 //#PlaySpell(Player, SpellName, TargetHalfBoard[0-self,1-enemy], TargetCreatureNum[-1 means targets player])
 
-                //check target
+                //Card put to graveyard instantly!
+                this.addCardToGraveyard(_card);
                 if (_targetPlayer != null) {
                     _card.playOnPlayer(this, _targetPlayer);
                     if (_targetPlayer == this)
@@ -454,8 +455,6 @@ public class Player extends Card {
                     _card.playNoTarget(this);
                     owner.sendBoth("#PlaySpell(" + playerName + "," + _card.name + ",-1,-1)");
                 }
-                //and after play
-                Board.putCardToGraveyard(_card, this);
             } else if (_card.type == 2) {
                 //creature
                 owner.board.addCreatureToBoard(_card, this);
@@ -463,19 +462,19 @@ public class Player extends Card {
                 //TODO Equpiment command server
                 owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + ")");
                 if (_card.creatureType.equals("Броня")) {
-                    if (this.equpiment[0] != null) Board.putCardToGraveyard(this.equpiment[0], this);
+                    if (this.equpiment[0] != null) addCardToGraveyard(this.equpiment[0]);
                     this.equpiment[0] = new Equpiment(_card, this);
                 } else if (_card.creatureType.equals("Амулет")) {
-                    if (this.equpiment[1] != null) Board.putCardToGraveyard(this.equpiment[1], this);
+                    if (this.equpiment[1] != null) addCardToGraveyard(this.equpiment[1]);
                     this.equpiment[1] = new Equpiment(_card, this);
                 } else if (_card.creatureType.equals("Оружие")) {
-                    if (this.equpiment[2] != null) Board.putCardToGraveyard(this.equpiment[2], this);
+                    if (this.equpiment[2] != null) addCardToGraveyard(this.equpiment[2]);
                     this.equpiment[2] = new Equpiment(_card, this);
                 }
             } else if (_card.type == 4) {
                 //Event is equip with n=3
                 owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + ")");
-                if (this.equpiment[3] != null) Board.putCardToGraveyard(this.equpiment[3], this);
+                if (this.equpiment[3] != null) addCardToGraveyard(this.equpiment[3]);
                 this.equpiment[3] = new Equpiment(_card, this);
             }
 
@@ -524,7 +523,7 @@ public class Player extends Card {
                 if (dmg < 0) dmg = 0;
                 owner.printToView(0, "Плащ Исхара предотвратил " + (tmp - dmg) + " урона.");
                 if (equpiment[0].hp <= 0) {
-                    Board.putCardToGraveyard(equpiment[0], this);
+                    addCardToGraveyard(equpiment[0]);
                     equpiment[0] = null;
                 }
             }

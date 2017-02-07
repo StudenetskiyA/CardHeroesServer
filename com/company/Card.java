@@ -95,7 +95,7 @@ class Card {
             case "Неудача":
                 return new Card(2, name, "", 5, 1, 1, 0, "Ранить на остаток выбранное существо и своего героя на столько же.", 0, 0);
             case "Возрождение":
-                return new Card(1, name, "", 5, 1, 0, 0, "Раскопать тип 2.", 0, 0);
+                return new Card(1, name, "", 5, 1, 0, 0, "Раскопать (2,0, ,0,0).", 0, 0);
             case "Гьерхор":
                 return new Card(1, "Гьерхор", "Йордлинг", 3, 2, 0, 0, "", 2, 2);
             case "Алчущие крови":
@@ -312,7 +312,8 @@ class Card {
                 if (owner.choiceXcreatureType.equals(" ")) owner.choiceXcreatureType="";
                 owner.choiceXcost =  Integer.parseInt(parameter.get(3));
                 owner.choiceXcostExactly = Integer.parseInt(parameter.get(4));
-                owner.sendChoiceSearch(_whis.name+" ищет в колоде.");
+                owner.setPlayerGameStatus(MyFunction.PlayerStatus.digX);
+                owner.sendChoiceSearch(false,_whis.name+" ищет в колоде.");
                 System.out.println("pause");
                 synchronized (owner.cretureDiedMonitor) {
                     try {
@@ -324,11 +325,17 @@ class Card {
                 System.out.println("resume");
             }
         }
-        else if (txt.contains("Раскопать тип ")) {//Only for player, who called it.
+        else if (txt.contains("Раскопать (")) {//Only for player, who called it.
             if (_whis.playerName.equals(owner.player.playerName)) {
-                int dmg = MyFunction.getNumericAfterText(txt, "Раскопать тип ");
+                ArrayList<String> parameter = MyFunction.getTextBetween(txt);
+                owner.choiceXtype = Integer.parseInt(parameter.get(0));
+                owner.choiceXcolor = Integer.parseInt(parameter.get(1));
+                owner.choiceXcreatureType = parameter.get(2);
+                if (owner.choiceXcreatureType.equals(" ")) owner.choiceXcreatureType="";
+                owner.choiceXcost =  Integer.parseInt(parameter.get(3));
+                owner.choiceXcostExactly = Integer.parseInt(parameter.get(4));
                 owner.setPlayerGameStatus(MyFunction.PlayerStatus.digX);
-                //Main.choiceXtype = dmg;
+                owner.sendChoiceSearch(true,_whis.name+" ищет в колоде.");
                 System.out.println("pause");
                 synchronized (owner.cretureDiedMonitor) {
                     try {

@@ -14,25 +14,6 @@ public class Board {
 
     public Board() {
     }
-//
-//    static int getPlayerNumByName(String _name) {
-//        if (_name.equals(Main.players[0].playerName)) return 0;
-//        else if (_name.equals(Main.players[1].playerName)) return 1;
-//        else {
-//            System.out.println("Error - Unknown player.");
-//            return -1;
-//        }
-//    }
-//
-//    static Player getPlayerByName(String _name) {
-//        if (_name.equals(Main.players[0].playerName)) return Main.players[0];
-//        else if (_name.equals(Main.players[1].playerName)) return Main.players[1];
-//        else {
-//            System.out.println("Error - Unknown player.");
-//            return null;
-//        }
-//    }
-
 
     void addCreatureToBoard(Card _creature, Player _player) {
         Creature summonCreature = new Creature(_creature, _player);
@@ -54,9 +35,5 @@ public class Board {
             System.out.println("Creature hp less 0, die.");
             summonCreature.die();
         }
-    }
-
-    static void putCardToGraveyard(Card _card, Player _owner) {
-        _owner.addCardToGraveyard(_card);
     }
 }

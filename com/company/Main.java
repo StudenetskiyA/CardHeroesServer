@@ -297,10 +297,12 @@ class Gamer extends Thread {
     }
 
 
-    void sendChoiceSearch(String message){
+    void sendChoiceSearch(boolean dig,String message){
         //#ChoiceSearchInDeck(PlayerName,CardType,CardColor,CreatureType,CardCost,CardCostExactly,Message).
         System.out.println("Sending choice search to " + player.playerName);
-        String s = "#ChoiceSearchInDeck(";
+        String s;
+        if (!dig) s = "#ChoiceSearchInDeck(";
+        else s = "#ChoiceSearchInGraveyard(";
         s+=player.playerName+",";
         s+=choiceXtype+",";
         s+=choiceXcolor+",";

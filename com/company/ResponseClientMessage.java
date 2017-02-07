@@ -49,7 +49,7 @@ public class ResponseClientMessage extends Thread {
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             int n = Integer.parseInt(parameter.get(1));
             gamer.printToView(0, player.playerName + " сбрасывает " + player.cardInHand.get(n).name);
-            Board.putCardToGraveyard(player.cardInHand.get(n), player);
+            player.addCardToGraveyard(player.cardInHand.get(n));
             player.cardInHand.remove(n);
         } else if ((fromServer.contains("$CRYTARGET(")) || (fromServer.contains("$TAPTARGET("))) {
             // CRYTARGET also for DeathratleTarget and TapTarget
@@ -225,7 +225,7 @@ public class ResponseClientMessage extends Thread {
                 gamer.printToView(0, "Вы ищете на кладбище, но ничего подходящего не находите.");
                 gamer.opponent.printToView(0, "Противник ищет на кладбище, но ничего подходящего не находит.");
             } else {
-                Card card = player.deck.searchCard(parameter.get(1));
+                Card card = MyFunction.searchCardInList(player.graveyard,parameter.get(1));
                 //TODO Check exist card and may it be founded. Player may lie.
                 player.digSpecialCard(card);
                 gamer.printToView(0, "Вы берете с кладбища " + card.name + ".");

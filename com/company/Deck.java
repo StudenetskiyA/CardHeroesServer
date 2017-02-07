@@ -5,9 +5,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
 
-/**
- * Created by StudenetskiyA on 30.12.2016.
- */
+// Created by StudenetskiyA on 30.12.2016.
+
 public class Deck {
     ArrayList<Card> cards = new ArrayList<>();
     public String name;
@@ -94,6 +93,4 @@ public class Deck {
         }
         return tmp;
     }
-
-
 }

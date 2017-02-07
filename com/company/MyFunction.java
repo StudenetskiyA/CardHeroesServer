@@ -53,6 +53,13 @@ public class MyFunction {
         }
     }
 
+    public static Card searchCardInList(ArrayList<Card> list,String name){
+        for (int i=0;i<list.size();i++){
+            if (list.get(i).name.equals(name)) return list.get(i);
+        }
+        return null;
+    }
+
     public static ArrayList<String> getTextBetween(String fromText) {
         ArrayList<String> rtrn = new ArrayList<String>();
         String beforeText = "(";
