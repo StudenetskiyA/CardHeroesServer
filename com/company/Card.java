@@ -213,17 +213,17 @@ class Card {
             case "Вольный воитель":
                 return new Card(0, name, "", 6, 2, 0, 0, "Доплатите Х *. Найм: Получает к характеристикам + ХХХ.", 0, 0);
             case "Шар тины":
-                return new Card(2, name, "", 1, 1, 0, 0, "Поиск цвет 1.", 0, 0);
+                return new Card(2, name, "", 1, 1, 0, 0, "Поиск (0,1, ,0,0).", 0, 0);
             case "Карта сокровищ":
-                return new Card(2, name, "", 6, 1, 0, 0, "Поиск цвет 6.", 0, 0);
+                return new Card(2, name, "", 6, 1, 0, 0, "Поиск (0,6, ,0,0).", 0, 0);
             case "Шар молний":
-                return new Card(2, name, "", 3, 1, 0, 0, "Поиск цвет 3.", 0, 0);
+                return new Card(2, name, "", 3, 1, 0, 0, "Поиск (0,3, ,0,0).", 0, 0);
             case "Гном-кузнец":
-                return new Card(3, name, "Гном", 1, 2, 0, 0, "Найм: Поиск тип 3.", 1, 4);
+                return new Card(3, name, "Гном", 1, 2, 0, 0, "Найм: Поиск (3,0, ,0,0).", 1, 4);
             case "Гном-кладоискатель":
-                return new Card(5, name, "Гном", 3, 2, 0, 0, "Броня 1. Найм: Поиск комбо+ 2 Гном 2.", 5, 4);
+                return new Card(5, name, "Гном", 3, 2, 0, 0, "Броня 1. Найм: Поиск (2,0,Гном,2,0).", 5, 4);
             case "Шаман племени ворона":
-                return new Card(1, name, "Наемник", 6, 2, 0, 0, "Найм: Поиск ТС 2 2.", 1, 1);
+                return new Card(1, name, "Наемник", 6, 2, 0, 0, "Найм: Поиск (2,0, ,0,2).", 1, 1);
             case "Дух Эллиона":
                 return new Card(1, name, "Дух", 6, 2, 0, 0, "Найм: Потеряйте * 1.", 3, 4);
             case "Рунопевец":
@@ -266,22 +266,6 @@ class Card {
             _whis.bbshield = true;
             owner.printToView(0, "Бьорнбон активирует свой щит.");
         }
-        if (txt.contains("Поиск цвет ")) {//Only for player, who called it.
-            if (_whis.playerName.equals(owner.name)) {
-                int dmg = MyFunction.getNumericAfterText(txt, "Поиск цвет ");
-               owner.setPlayerGameStatus(MyFunction.PlayerStatus.searchX);
-               // Main.choiceXcolor = dmg;
-                System.out.println("pause");
-                synchronized (owner.cretureDiedMonitor) {
-                    try {
-                        owner.cretureDiedMonitor.wait();
-                    } catch (InterruptedException e2) {
-                        e2.printStackTrace();
-                    }
-                }
-                System.out.println("resume");
-            }
-        }
         if (txt.contains("Лики-абилка.")) {//Only for player, who called it.
             if (_whis.playerName.equals(owner.name)) {
                 ArrayList<Card> a = new ArrayList<>();
@@ -319,35 +303,16 @@ class Card {
                 owner.player.deck.suffleDeck(owner.sufflingConst);
             }
         }
-        if (txt.contains("Поиск комбо+ ")) {//Only for player, who called it.
+        if (txt.contains("Поиск (")) {//Поиск (type,color,creatureType,cost,costEx)
             if (_whis.playerName.equals(owner.name)) {
-                int type = MyFunction.getNumericAfterText(txt, "Поиск комбо+ ");
-                owner.setPlayerGameStatus(MyFunction.PlayerStatus.searchX);
-              //  Main.choiceXtype = type;
-              //  Main.choiceXcreatureType = txt.substring(txt.indexOf("Поиск комбо+ ") + "Поиск комбо+ ".length() + 2, txt.indexOf(" ", txt.indexOf("Поиск комбо+ ") + "Поиск комбо+ ".length() + 2));
-               // System.out.println("search type = " + Main.choiceXcreatureType);
-              //  Main.choiceXcost = MyFunction.getNumericAfterText(txt, "Поиск комбо+ " + type + " " + Main.choiceXcreatureType + " ");
-               // Main.choiceXcostExactly=0;
-                //System.out.println("search cost = " + Main.choiceXcost);
-                System.out.println("pause");
-                synchronized (owner.cretureDiedMonitor) {
-                    try {
-                        owner.cretureDiedMonitor.wait();
-                    } catch (InterruptedException e2) {
-                        e2.printStackTrace();
-                    }
-                }
-                System.out.println("resume");
-            }
-        }
-        if (txt.contains("Поиск ТС ")) {//Only for player, who called it.
-            if (_whis.playerName.equals(owner.name)) {
-                int type = MyFunction.getNumericAfterText(txt, "Поиск ТС ");
-                owner.setPlayerGameStatus(MyFunction.PlayerStatus.searchX);
-                owner.choiceXtype = type;
-                owner.choiceXcost=0;
-                owner.choiceXcostExactly = MyFunction.getNumericAfterText(txt, "Поиск ТС " + type + " ");
-                owner.sendChoiceSearch(_cr.name+" ищет в колоде.");
+                ArrayList<String> parameter = MyFunction.getTextBetween(txt);
+                owner.choiceXtype = Integer.parseInt(parameter.get(0));
+                owner.choiceXcolor = Integer.parseInt(parameter.get(1));
+                owner.choiceXcreatureType = parameter.get(2);
+                if (owner.choiceXcreatureType.equals(" ")) owner.choiceXcreatureType="";
+                owner.choiceXcost =  Integer.parseInt(parameter.get(3));
+                owner.choiceXcostExactly = Integer.parseInt(parameter.get(4));
+                owner.sendChoiceSearch(_whis.name+" ищет в колоде.");
                 System.out.println("pause");
                 synchronized (owner.cretureDiedMonitor) {
                     try {
@@ -363,22 +328,6 @@ class Card {
             if (_whis.playerName.equals(owner.player.playerName)) {
                 int dmg = MyFunction.getNumericAfterText(txt, "Раскопать тип ");
                 owner.setPlayerGameStatus(MyFunction.PlayerStatus.digX);
-                //Main.choiceXtype = dmg;
-                System.out.println("pause");
-                synchronized (owner.cretureDiedMonitor) {
-                    try {
-                        owner.cretureDiedMonitor.wait();
-                    } catch (InterruptedException e2) {
-                        e2.printStackTrace();
-                    }
-                }
-                System.out.println("resume");
-            }
-        }
-        if (txt.contains("Поиск тип ")) {//Only for player, who called it.
-            if (_whis.playerName.equals(owner.player.playerName)) {
-                int dmg = MyFunction.getNumericAfterText(txt, "Поиск тип ");
-                owner.setPlayerGameStatus(MyFunction.PlayerStatus.searchX);
                 //Main.choiceXtype = dmg;
                 System.out.println("pause");
                 synchronized (owner.cretureDiedMonitor) {

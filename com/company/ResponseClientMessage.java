@@ -151,8 +151,6 @@ public class ResponseClientMessage extends Thread {
             gamer.opponent.setPlayerGameStatus(PlayerStatus.MyTurn);
             //dontDoQueue = true;
         } else if (fromServer.contains("$PLAYCARD(")) {
-            gamer.memPlayerStatus=gamer.status;
-            gamer.opponent.memPlayerStatus=gamer.opponent.status;
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             if (!parameter.get(3).equals("-1")) {//if card targets creature
                 if ((parameter.get(4).equals(gamer.opponent.player.playerName)))
@@ -168,8 +166,6 @@ public class ResponseClientMessage extends Thread {
                     player.playCard(Integer.parseInt(parameter.get(2)), Card.getCardByName(parameter.get(1)), null, null);
             }
         } else if (fromServer.contains("$PLAYWITHX(")) {
-            gamer.memPlayerStatus=gamer.status;
-            gamer.opponent.memPlayerStatus=gamer.opponent.status;
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             int x = Integer.parseInt(parameter.get(5));
             Player apl = gamer.opponent.player;
@@ -187,15 +183,11 @@ public class ResponseClientMessage extends Thread {
                     player.playCardX(Integer.parseInt(parameter.get(2)), Card.getCardByName(parameter.get(1)), null, null, x);
             }
         } else if (fromServer.contains("$ATTACKPLAYER(")) {//$ATTACKPLAYER(Player, Creature)
-//            gamer.memPlayerStatus=gamer.status;
-//            gamer.opponent.memPlayerStatus=gamer.opponent.status;
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             //TODO Check exist and can attack. Client may lie!
             gamer.printToView(0, player.creatures.get(Integer.parseInt(parameter.get(1))).name + " атакует " + gamer.opponent.player.name);
             player.creatures.get(Integer.parseInt(parameter.get(1))).attackPlayer(gamer.opponent.player);
         } else if (fromServer.contains("$ATTACKCREATURE(")) {//$ATTACKREATURE(Player, Creature, TargetCreature)
-//            gamer.memPlayerStatus=gamer.status;
-//            gamer.opponent.memPlayerStatus=gamer.opponent.status;
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             gamer.printToView(0, player.creatures.get(Integer.parseInt(parameter.get(1))).name + " атакует " + gamer.opponent.player.creatures.get(Integer.parseInt(parameter.get(2))).name);
             player.creatures.get(Integer.parseInt(parameter.get(1))).attackCreature(gamer.opponent.player.creatures.get(Integer.parseInt(parameter.get(2))));
@@ -205,6 +197,8 @@ public class ResponseClientMessage extends Thread {
             gamer.choiceXcost = 0;
             gamer.choiceXcostExactly = 0;
             gamer.choiceXcreatureType = "";
+            gamer.setPlayerGameStatus(PlayerStatus.MyTurn);
+            gamer.opponent.setPlayerGameStatus(PlayerStatus.EnemyTurn);
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             if (parameter.get(1).equals("-1")) {
                 gamer.printToView(0, "Вы ищете в колоде, но ничего подходящего не находите.");
@@ -224,6 +218,8 @@ public class ResponseClientMessage extends Thread {
             gamer.choiceXcost = 0;
             gamer.choiceXcostExactly = 0;
             gamer.choiceXcreatureType = "";
+            gamer.setPlayerGameStatus(PlayerStatus.MyTurn);
+            gamer.opponent.setPlayerGameStatus(PlayerStatus.EnemyTurn);
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             if (parameter.get(1).equals("-1")) {
                 gamer.printToView(0, "Вы ищете на кладбище, но ничего подходящего не находите.");

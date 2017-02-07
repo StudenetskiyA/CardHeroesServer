@@ -56,7 +56,7 @@ public class MyFunction {
     public static ArrayList<String> getTextBetween(String fromText) {
         ArrayList<String> rtrn = new ArrayList<String>();
         String beforeText = "(";
-        fromText = fromText.substring(fromText.indexOf(beforeText) + 1, fromText.length() - 1);
+        fromText = fromText.substring(fromText.indexOf(beforeText) + 1, fromText.indexOf(")"));
         String[] par = fromText.split(",");
         for (int i = 0; i < par.length; i++)
             rtrn.add(par[i]);

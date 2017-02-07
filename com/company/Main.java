@@ -63,10 +63,9 @@ class Gamer extends Thread {
      String choiceXcreatureType = "";
      int choiceXcost = 0;
      int choiceXcostExactly = 0;
-     String choiceXtext;
+     String choiceXname;
 
     void printToView(int n, String txt) {
-       // sendBoth("#Message(" + n + "," + txt + ")");
         output.println("#Message(" + n + "," + txt + ")");
         System.out.println(txt);
     }
