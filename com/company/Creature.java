@@ -116,6 +116,12 @@ public class Creature extends Card {
             isDie=true;
             owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.die.getValue()+","+0+")");
         }
+
+        void takeBonusPowerUEOT(int n){
+            bonusPowerUEOT+=n;
+            owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.bonusPowerUEOT.getValue()+","+n+")");
+
+        }
     }
 
     int getBonusOrMinusTougness(){

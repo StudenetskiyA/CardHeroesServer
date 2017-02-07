@@ -171,7 +171,7 @@ class Card {
             case "Рыцарь Туллена":
                 return new Card(6, "Рыцарь Туллена", "", 2, 2, 0, 0, "Броня 3.", 6, 3);
             case "Орк-лучник":
-                return new Card(1, name, "", 2, 2, 3, 0, "Гнев. Наймт: Выстрел на 3.", 1, 1);
+                return new Card(1, name, "", 2, 2, 3, 0, "Гнев. Наймт: Выстрел на 1.", 1, 1);
             case "Безумие":
                 return new Card(3, name, "", 1, 1, 1, 0, "Нанести урон выбранному существу, равный его удару.", 0, 0);
             case "Зельеварение":
@@ -399,8 +399,7 @@ class Card {
         }
         if (txt.contains("Выбранное существо до конца хода получает к атаке + ")) {
             int dmg = MyFunction.getNumericAfterText(txt, "Выбранное существо до конца хода получает к атаке + ");
-            owner.printToView(0, _cr.name + " получает +" + dmg + " к удару до конца хода.");
-            _cr.effects.bonusPowerUEOT += dmg;
+            _cr.effects.takeBonusPowerUEOT(dmg);
         }
         if (txt.contains("Получает к броне + ")) {
             int dmg = MyFunction.getNumericAfterText(txt, "Получает к броне + ");

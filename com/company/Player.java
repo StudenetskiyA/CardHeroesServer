@@ -461,7 +461,7 @@ public class Player extends Card {
                 owner.board.addCreatureToBoard(_card, this);
             } else if (_card.type == 3) {
                 //TODO Equpiment command server
-                owner.printToView(0, name + " экипировал " + _card.name + ".");
+                owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + ")");
                 if (_card.creatureType.equals("Броня")) {
                     if (this.equpiment[0] != null) Board.putCardToGraveyard(this.equpiment[0], this);
                     this.equpiment[0] = new Equpiment(_card, this);
@@ -473,7 +473,8 @@ public class Player extends Card {
                     this.equpiment[2] = new Equpiment(_card, this);
                 }
             } else if (_card.type == 4) {
-                owner.printToView(0, name + " экипировал " + _card.name + ".");
+                //Event is equip with n=3
+                owner.sendBoth("#PutEquipToBoard(" + playerName + "," + _card.name + ")");
                 if (this.equpiment[3] != null) Board.putCardToGraveyard(this.equpiment[3], this);
                 this.equpiment[3] = new Equpiment(_card, this);
             }
@@ -481,8 +482,6 @@ public class Player extends Card {
         } else {
             owner.printToView(0, "Не хватает монет.");
         }
-
-        //  owner.gameQueue.responseAllQueue();
     }
 
     void drawCard() {
