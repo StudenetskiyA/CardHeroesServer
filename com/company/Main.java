@@ -337,6 +337,10 @@ class Gamer extends Thread {
         s += player.damage + ",";
         s += player.untappedCoin + ",";
         s += player.totalCoin + ",";
+        s += player.temporaryCoin+",";
+        s += player.owner.opponent.player.untappedCoin + ",";
+        s += player.owner.opponent.player.totalCoin + ",";
+        s += player.owner.opponent.player.temporaryCoin+",";
         s += player.deck.getCardExpiried() + ",";
         s += player.owner.opponent.player.cardInHand.size()+",";
         s += player.cardInHand.size() + ",";

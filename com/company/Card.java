@@ -450,7 +450,6 @@ class Card {
         }
         if (txt.contains("Выбранное существо не может атаковать и выступать защитником до конца следующего хода.")) {
             _cr.effects.takeCantAttackOrBlock(2);
-            owner.printToView(0, _cr.name + " не может атаковать и выступать защитником до конца следующего хода.");
         }
         if (txt.contains("Нанести урон выбранному существу, равный его удару.")) {
             int dmg = _cr.getPower();
