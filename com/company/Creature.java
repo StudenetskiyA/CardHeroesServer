@@ -27,18 +27,19 @@ public class Creature extends Card {
     public class Effects {
         Creature whis;
         String additionalText = "";
-        public boolean isDie = false;
-        public int poison = 0;
-        public int bonusPower = 0;
-        public int bonusPowerUEOT = 0;
-        public int bonusTougness = 0;
-        public int bonusArmor = 0;
-        public int cantAttackOrBlock = 0;
-        public int turnToDie = 999;
+         boolean isDie = false;
+         int poison = 0;
+         int bonusPower = 0;
+         int bonusPowerUEOT = 0;
+         int bonusTougness = 0;
+         int bonusTougnessUEOT = 0;
+         int bonusArmor = 0;
+         int cantAttackOrBlock = 0;
+         int turnToDie = 999;
         boolean vulnerability = false;
-        public boolean upkeepPlayed = false;
-        public boolean battlecryPlayed = false;
-        public boolean deathPlayed = false;
+         boolean upkeepPlayed = false;
+         boolean battlecryPlayed = false;
+         boolean deathPlayed = false;
 
         Effects(Creature _cr) {
             whis = _cr;
@@ -120,7 +121,23 @@ public class Creature extends Card {
         void takeBonusPowerUEOT(int n){
             bonusPowerUEOT+=n;
             owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.bonusPowerUEOT.getValue()+","+n+")");
+        }
+        void takeBonusPower(int n){
+            bonusPower+=n;
+            owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.bonusPower.getValue()+","+n+")");
 
+        }
+        void takeBonusTougnessUEOT(int n){
+            bonusTougnessUEOT+=n;
+            owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.bonusTougnessUEOT.getValue()+","+n+")");
+        }
+        void takeBonusTougness(int n){
+            bonusTougness+=n;
+            owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.bonusTougness.getValue()+","+n+")");
+        }
+        void takeBonusArmor(int n){
+            bonusArmor+=n;
+            owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.bonusArmor.getValue()+","+n+")");
         }
     }
 
@@ -254,6 +271,10 @@ public class Creature extends Card {
     }
 
     void attackCreature(Creature target) {
+        if (target.owner.effect.getBBShield()) {
+            owner.owner.printToView(0, "Первая атака должна быть в Бьорнбона.");
+            return;
+        }
         if (!text.contains("Опыт в атаке") || !effects.additionalText.contains("Опыт в атаке"))
             tapCreature();
         attackThisTurn = true;
@@ -278,7 +299,7 @@ public class Creature extends Card {
     }
 
     void attackPlayer(Player target) {
-        if (target.bbshield) target.bbshield = false;
+        target.effect.takeBBShield(false);
         if (!text.contains("Опыт в атаке."))
             tapCreature();
         attackThisTurn = true;

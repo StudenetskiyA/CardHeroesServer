@@ -263,8 +263,7 @@ class Card {
             owner.printToView(0, _cr.name + " сбрасывает верхнюю карту с колоды "+ _whis.owner.opponent.player.playerName);
         }
         if (txt.contains("Получить щит ББ.")) {//Only here - _cr=_who to get access to creature
-            _whis.bbshield = true;
-            owner.printToView(0, "Бьорнбон активирует свой щит.");
+            _whis.effect.takeBBShield(true);
         }
         if (txt.contains("Лики-абилка.")) {//Only for player, who called it.
             if (_whis.playerName.equals(owner.name)) {

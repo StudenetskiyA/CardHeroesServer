@@ -30,10 +30,31 @@ public class Player extends Card {
     public ArrayList<Creature> crDied;//Temporary list for queue
     public ArrayList<Creature> crCryed;
     public ArrayList<Creature> crUpkeeped;
-    //Effects
-    Boolean bbshield = false;//Bjornbon shield
     //
+    public Effects effect= new Effects(this);
+
     private static int tempX;//For card with X, for correct minus cost
+
+    public class Effects {
+        Player whis;
+        String additionalText = "";
+        private boolean bbShield = false;
+
+        Effects(Player _pl) {
+            whis = _pl;
+        }
+
+        boolean getBBShield() {
+            return bbShield;
+        }
+
+        //#TakeCreatureEffect(Player, CreatureNumOnBoard,Effect,EffectCount)
+        void takeBBShield(boolean take) {
+            bbShield = take;
+            int t = (take)? 1:0;
+            owner.sendBoth("#TakePlayerEffect(" + playerName + ","  + MyFunction.EffectPlayer.bbShield.getValue() + "," + t + ")");
+        }
+    }
 
     void addCreatureToList(Creature c) {
         creatures.add(c);
@@ -121,7 +142,8 @@ public class Player extends Card {
     void endTurn() {
         totalCoin -= temporaryCoin;
 
-        if (owner.opponent.player.bbshield) owner.opponent.player.bbshield = false;
+        //BBShield don't disappear at end of turn.
+        //if (owner.opponent.player.effect.getBBShield()) owner.opponent.player.effect.takeBBShield(false);
 
         if (untappedCoin > totalCoin) untappedCoin = totalCoin;
         temporaryCoin = 0;

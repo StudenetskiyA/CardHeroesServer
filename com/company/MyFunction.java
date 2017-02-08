@@ -70,8 +70,32 @@ public class MyFunction {
         return rtrn;
     }
 
+    enum EffectPlayer{
+        bbShield(1);
+
+        private final int value;
+
+        EffectPlayer(int value) {
+            this.value = value;
+        }
+
+        public int getValue() {
+            return value;
+        }
+
+        public static EffectPlayer fromInteger(int x) {
+            switch(x) {
+                case 1:
+                    return bbShield;
+            }
+            return null;
+        }
+    }
+
+
     enum Effect{
-        poison(1), vulnerability(2), turnToDie(3), die(4), bonusPowerUEOT(5);
+        poison(1), vulnerability(2),turnToDie(3), die(4), bonusPowerUEOT(5), bonusPower(6), bonusTougnessUEOT(7), bonusTougness(8),
+        bonusArmor(9), cantattackandblock(10);
 
         private final int value;
 
@@ -95,6 +119,16 @@ public class MyFunction {
                     return die;
                 case 5:
                     return bonusPowerUEOT;
+                case 6:
+                    return bonusPower;
+                case 7:
+                    return bonusTougnessUEOT;
+                case 8:
+                    return bonusTougness;
+                case 9:
+                    return bonusArmor;
+                case 10:
+                    return cantattackandblock;
             }
             return null;
         }
