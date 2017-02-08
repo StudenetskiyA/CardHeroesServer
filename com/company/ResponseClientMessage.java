@@ -41,8 +41,6 @@ public class ResponseClientMessage extends Thread {
             gamer.opponent.creatureWhoAttackTarget = Integer.parseInt(parameter.get(2));
             dontDoQueue = true;
         } else if (fromServer.contains("$TAPNOTARGET(")) {
-//            gamer.memPlayerStatus=gamer.status;
-//            gamer.opponent.memPlayerStatus=gamer.opponent.status;
             ArrayList<String> parameter = MyFunction.getTextBetween(fromServer);
             player.creatures.get(Integer.parseInt(parameter.get(1))).tapNoTargetAbility();
         } else if (fromServer.contains("$DISCARD(")) {
