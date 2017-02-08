@@ -15,7 +15,7 @@ import static com.company.Main.COIN_START;
 import static com.company.Main.randomNum;
 
 public class Main {
-    static final int COIN_START = 10;//TODO 0
+    static final int COIN_START = 0;//TODO 0
     static final String CLIENT_VERSION = "0.02";
     private static final int PORT = 8901;
     static int randomNum = ThreadLocalRandom.current().nextInt(100, 999 + 1);
