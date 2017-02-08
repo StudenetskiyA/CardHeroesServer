@@ -3,9 +3,7 @@ package com.company;
 import java.util.ArrayList;
 import java.util.ListIterator;
 
-/**
- * Created by StudenetskiyA on 30.12.2016.
- */
+// Created by StudenetskiyA on 30.12.2016.
 
 public class Creature extends Card {
     boolean isTapped;
@@ -34,9 +32,9 @@ public class Creature extends Card {
          int bonusTougness = 0;
          int bonusTougnessUEOT = 0;
          int bonusArmor = 0;
-         int cantAttackOrBlock = 0;
+         private int cantAttackOrBlock = 0;
          int turnToDie = 999;
-        boolean vulnerability = false;
+         boolean vulnerability = false;
          boolean upkeepPlayed = false;
          boolean battlecryPlayed = false;
          boolean deathPlayed = false;
@@ -138,6 +136,10 @@ public class Creature extends Card {
         void takeBonusArmor(int n){
             bonusArmor+=n;
             owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.bonusArmor.getValue()+","+n+")");
+        }
+        void takeCantAttackOrBlock(int n){
+            cantAttackOrBlock=n;
+            owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.cantattackandblock.getValue()+","+n+")");
         }
     }
 
@@ -275,6 +277,11 @@ public class Creature extends Card {
             owner.owner.printToView(0, "Первая атака должна быть в Бьорнбона.");
             return;
         }
+        if (isTapped || attackThisTurn || effects.cantAttackOrBlock > 0) {
+            owner.owner.printToView(0, "Повернутое/атаковавшее/т.д. существо не может атаковать.");
+            return;
+        }
+
         if (!text.contains("Опыт в атаке") || !effects.additionalText.contains("Опыт в атаке"))
             tapCreature();
         attackThisTurn = true;
@@ -300,6 +307,11 @@ public class Creature extends Card {
 
     void attackPlayer(Player target) {
         target.effect.takeBBShield(false);
+        if (isTapped || attackThisTurn || effects.cantAttackOrBlock > 0) {
+            owner.owner.printToView(0, "Повернутое/атаковавшее/т.д. существо не может атаковать.");
+            return;
+        }
+
         if (!text.contains("Опыт в атаке."))
             tapCreature();
         attackThisTurn = true;
