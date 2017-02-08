@@ -27,11 +27,11 @@ public class Creature extends Card {
         String additionalText = "";
          boolean isDie = false;
          int poison = 0;
-         int bonusPower = 0;
-         int bonusPowerUEOT = 0;
-         int bonusTougness = 0;
-         int bonusTougnessUEOT = 0;
-         int bonusArmor = 0;
+         private int bonusPower = 0;
+         private int bonusPowerUEOT = 0;
+         private int bonusTougness = 0;
+         private int bonusTougnessUEOT = 0;
+         private int bonusArmor = 0;
          private int cantAttackOrBlock = 0;
          int turnToDie = 999;
          boolean vulnerability = false;
@@ -135,6 +135,7 @@ public class Creature extends Card {
         }
         void takeBonusArmor(int n){
             bonusArmor+=n;
+            currentArmor += n;
             owner.owner.sendBoth("#TakeCreatureEffect("+owner.playerName+","+owner.getNumberOfCreature(this.whis)+","+ MyFunction.Effect.bonusArmor.getValue()+","+n+")");
         }
         void takeCantAttackOrBlock(int n){

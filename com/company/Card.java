@@ -348,9 +348,8 @@ class Card {
         }
         if (txt.contains("Получает к характеристикам + ")) {
             int dmg = MyFunction.getNumericAfterText(txt, "Получает к характеристикам + ");
-            _cr.effects.bonusTougness += dmg;
-            _cr.effects.bonusPower += dmg;
-            owner.printToView(0, _cr.name + " получает + " + dmg + " к характеристикам.");
+            _cr.effects.takeBonusTougness(dmg);
+            _cr.effects.takeBonusPower(dmg);
         }
         if (txt.contains("Выбранное существо до конца хода получает к атаке + ")) {
             int dmg = MyFunction.getNumericAfterText(txt, "Выбранное существо до конца хода получает к атаке + ");
@@ -358,21 +357,18 @@ class Card {
         }
         if (txt.contains("Получает к броне + ")) {
             int dmg = MyFunction.getNumericAfterText(txt, "Получает к броне + ");
-            _cr.effects.bonusArmor += dmg;
+            _cr.effects.takeBonusArmor(dmg);
         }
         if (txt.contains("Получает +Х к удару и Броню Х, где Х - число других ваших существ.")) {
             int dmg = _cr.owner.creatures.size() - 1;
             if (dmg > 0) {
-                _cr.effects.bonusPower += dmg;
-                _cr.effects.bonusArmor += dmg;
-                _cr.currentArmor += dmg;
-                owner.printToView(0, _cr.name + " получает +" + dmg + " к удару и броне.");
+                _cr.effects.takeBonusPower(dmg);
+                _cr.effects.takeBonusArmor(dmg);
             }
         }
         if (txt.contains("Получает к атаке + ")) {
             int dmg = MyFunction.getNumericAfterText(txt, "Получает к атаке + ");
-            _cr.effects.bonusPower += dmg;
-            owner.printToView(0, _cr.name + " получает +" + dmg + " к атаке.");
+            _cr.effects.takeBonusPower(dmg);
         }
         if (txt.contains("Излечить выбранное существо или героя на ")) {
             int dmg = MyFunction.getNumericAfterText(txt, "Излечить выбранное существо или героя на ");
